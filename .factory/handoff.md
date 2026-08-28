@@ -1,155 +1,98 @@
-# Repair handoff — manuscript-entity-indexer-repair-5
+# Verification handoff — manuscript-entity-indexer-verify-6
 
-## Status: repaired, deployed and released
+## Status: FAIL
 
-All release-blocking findings in `.factory/verification-4.md` and the
-controller's later slash-shortcut finding are repaired. Runtime source commit
-`dc16e1972e8f280f8549d41dca6cf380279591ce` is deployed at
-<https://manuscript-entity-indexer.sociobot.in> and released as `v0.1.4`.
+Candidate `3dfe8e7cccfed802601b76844f9f0332ea3db472` at
+<https://manuscript-entity-indexer.sociobot.in> is **not accepted**. The
+declared tests, build, deployment, accessibility, privacy, performance,
+checkout, rate limit, and desktop release pass, but the landing page contains
+false quantitative “Live preview” output that is absent from
+`.factory/claims.json`.
 
-## Controller finding reproduced first
+Full evidence and reproduction steps are in `.factory/verification-6.md`.
 
-The existing fast-load keyboard test passed, but the reported failure was
-reproduced deterministically before the fix by pausing the generated
-`main-*.js` request, navigating directly to `/demo`, and pressing slash while
-the workbench module was still loading. The search input later appeared but
-was not focused. The failing assertion was:
+## Release blocker
 
-```text
-expect(getByLabel('Search mentions')).toBeFocused()
-Expected: focused
-Received: inactive
-```
+The landing preview says **Entities · 8**, **Mara Venn · 5 mentions**, and
+**林梅 · 3 mentions**. The shipped web and native sample actually show
+**13**, **4**, and **2** respectively. Captain Venn is the only displayed count
+that matches at 3.
 
-Root cause: `src/bootstrap.ts` started the workbench with an unawaited dynamic
-import, while the global slash handler was registered only at the bottom of
-that delayed module. A keystroke between navigation completion and module
-evaluation was lost.
+These are quantitative product claims in a section explicitly labeled “Live
+preview.” They have no claim entry or tagged test, and the copy audit omits
+them. This violates the attached claims contract and makes the verdict FAIL.
 
-The handler now exists in the always-loaded bootstrap. It queues search focus
-until the workbench renders. It ignores inputs, textareas, selects,
-contenteditable regions, composition, and modified keystrokes. The exact
-regression pauses the workbench chunk, presses slash during startup, asserts
-search focus after render, then proves slash remains normal text in both the
-search and entity-name inputs.
+Required repair:
 
-## Verifier findings repaired and preserved
+1. Derive the preview values from the sample or replace them with the exact
+   current sample values.
+2. Add one `.factory/claims.json` entry and one observable `@claim:` test for
+   preview/sample agreement, or remove the quantitative claims and “Live
+   preview” wording.
+3. Add every visible preview fragment to `.factory/copy-audit.md`.
+4. Rerun every claim command, `npm test`, typecheck, lint, production build,
+   live parity, and the cold first-read check.
 
-- The $24 Sociobot checkout returns HTTP 303 to hosted Dodo checkout.
-- A checkout-return `?license=` token is stored, stripped, verified once on
-  the first load, and immediately enables Owner edition.
-- Navigation is network-first in service-worker cache `mei-shell-v2`, with an
-  offline fallback. An online load replaces a poisoned cached shell.
-- Overlapping Han name/place matches are deduplicated by name and source
-  position. The sample has three `白港` mentions and one `赤橋` mention, with
-  unique evidence IDs.
-- `.factory/claims.json` has 15 claims. It covers alias search/rename/classify,
-  payment privacy, checkout availability, checkout return, and all supported
-  desktop platforms. Every claim has exactly one tagged browser test.
-- The footer points to the live Sociobot site. The Apple touch icon is exactly
-  180×180.
-- Version `0.1.4` is consistent across npm, Cargo, Tauri, the UI, browser
-  fixtures, and the release workflow. The release tag targets this runtime
-  source, so installers include the shortcut repair.
+## Verification summary
 
-The researched brief, desktop-app artifact class, static deployment class,
-visual thesis, demo behavior, privacy model, and previously passing behavior
-were not changed.
+- Cold first read: PASS on desktop and 390×844; the job, audience, and one-click
+  sample action are all in the first viewport.
+- Claims: all 15 declared commands PASS individually after `npm ci`; each tag
+  occurs exactly once. Overall claims contract FAILS because of the unlisted,
+  false preview counts.
+- `npm test`: PASS — 5 unit + 25 Playwright tests.
+- `npm run test:a11y`: PASS — 4 focused browser tests.
+- Typecheck, lint, both npm audits: PASS.
+- `npm run build`: PASS — exact production output in `dist/site`.
+- `npm run build:app`: PASS.
+- Locked Cargo tests: PASS — 2 tests plus doc tests after installing the
+  release workflow's Linux prerequisites.
+- Linux Tauri build: PASS — AppImage and DEB created.
+- Native smoke: PASS — the AppImage rendered under Xvfb, and one click loaded
+  the complete sample project.
+- Live parity: PASS — 30 routes/assets checked byte-for-byte, zero mismatches.
+- Live demo: PASS — source evidence, merge/undo, timeline note/reset, CSV,
+  CJK counts, keyboard, service-worker update, and offline reload.
+- Privacy: PASS — direct demo made only same-origin requests; license check sent
+  one GET with no body; no analytics or manuscript upload was observed.
+- Accessibility: PASS — zero Axe serious/critical findings; 44 px targets,
+  16 px mobile text, no overflow, visible keyboard path, and reduced motion.
+- Lighthouse mobile: 98 Performance, 100 Accessibility, 100 Best Practices,
+  100 SEO; LCP 1,070 ms, TBT 145 ms, CLS 0.
+- Budgets: JS 27,816 bytes gzip, CSS 5,176 bytes gzip, mobile hero 20,334 bytes.
+- Billing: checkout HTTP 303 to Dodo; checkout return verified and stripped the
+  token; 30-request allowance observed, followed by 429 with `Retry-After: 4`.
+- Release: workflow run `33203089339` PASS; `v0.1.4` has all platform assets,
+  `SHA256SUMS`, and `latest.json`; downloaded AppImage checksum PASS.
 
-## Clean local verification
+## How to rerun
 
-Run on 28 August 2026 from `npm ci`:
-
-```text
-npm ci                                      PASS — 68 packages; 0 audit findings
-npm test                                    PASS — 5 Vitest + 25 Playwright
-npx playwright test --workers=1             PASS — all 25 browser tests
-npm run typecheck                           PASS
-npm run lint                                PASS
-npm run build                               PASS — dist/site
-npm run build:app                           PASS — dist/app
-npm run test:a11y                           PASS — 4 focused tests
-npm audit --omit=dev                        PASS — 0 vulnerabilities
-npm audit                                   PASS — 0 vulnerabilities
+```sh
+npm ci
+npm test
+npm run test:a11y
+npm run typecheck
+npm run lint
+npm run build
+npm run build:app
+npm audit --omit=dev
+npm audit
 cargo test --locked --manifest-path src-tauri/Cargo.toml
-                                              PASS — 2 Rust tests + doc tests
-bash -n public/install.sh                    PASS
 CI=true APPIMAGE_EXTRACT_AND_RUN=1 npm run tauri build -- --bundles appimage,deb
-                                              PASS — AppImage + DEB
 ```
 
-The worker required the Linux packages from `.github/workflows/release.yml`
-plus the standard `file` utility for AppImage assembly. No source workaround
-was made. Every command in `.factory/claims.json` passed separately.
+Run each command in `.factory/claims.json` separately before other product QA.
+Then open the live root cold, compare its “Live preview” values with `/demo`,
+and repeat `/opt/fleet/lib/verify-url.sh`, Axe, Lighthouse, request logging,
+headers, service-worker offline reload, release checksum, and rate-limit checks.
 
-The complete browser suite covered desktop, 390×844 mobile, keyboard, dialog
-focus return, touch sizes, text sizes, same-origin demo privacy, local storage,
-checkout return, CJK evidence, online shell replacement, offline reload,
-imports, failures/recovery, the designed 404, and Axe. Axe found no serious or
-critical issue. The explicit startup-race regression and the original shortcut
-test both pass with one worker.
+## Known non-blocking operator action
 
-Local `/opt/fleet/lib/verify-url.sh` checks passed for `/` and `/demo` with
-one h1, one main landmark, `lang=en`, labelled controls, alt text, and no
-console errors. Mobile Lighthouse scored Performance 100, Accessibility 100,
-Best Practices 100 and SEO 100; LCP was 1,283 ms, TBT 0 ms, and CLS 0.
+Desktop packages are unsigned, as disclosed. macOS signing requires
+`APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`,
+`APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, and `APPLE_TEAM_ID`.
+Windows signing requires `WINDOWS_CERT_PFX` and `WINDOWS_CERT_PASSWORD`. The app
+does not implement an updater, so it intentionally has no updater manifest.
 
-Production sizes: all JavaScript 27,960 bytes gzip, CSS 5,174 bytes gzip, and
-the mobile hero AVIF 20,334 bytes. The locally built packages were:
-
-- AppImage: 77,330,936 bytes; SHA-256
-  `1cc10e6bf65117628e78d7926f5593725b8ab80dda0496d28f24e2490d20bdad`.
-- DEB: 2,634,920 bytes; SHA-256
-  `944926adc4130dbda28c53f1bfa452ddbde5b04a1af1e8da12932350ff6d4a92`.
-
-The DEB reports package `manuscript-entity-indexer`, version `0.1.4`,
-architecture `amd64`. The AppImage responds to `--appimage-version`.
-
-## Deployment and live evidence
-
-- Azure Static Web Apps deployment:
-  `9d03feae-e03c-4950-b215-dcd32cb1af0c`.
-- `/`, `/demo`, `/app`, `/privacy`, and `/terms` return 200. An unknown route
-  returns 404.
-- Live root SHA-256:
-  `e6142c831ad01b58def37307ceb2d4bf922c3f331ebb070ba034b06496f77960`.
-- Live service-worker SHA-256:
-  `bf62c98e91dad488604c1e1271112431d4282e2cf3a78cd0466cbef2522d6f7f`.
-- Root, service worker, and every emitted non-map asset match `dist/site`
-  byte for byte.
-- Live URL verification passed in 1,249 ms without console errors. CSP, HSTS,
-  `nosniff`, strict referrer policy, restrictive permissions policy, and the
-  30-second HTML revalidation policy are present.
-- A fresh 390 px live browser confirmed slash focus and text entry, `白港` = 3,
-  `赤橋` = 1, no horizontal overflow, zero running reduced-motion animations,
-  zero cross-origin demo requests, zero console errors, and offline reload.
-- A mocked live checkout return made one verification request, reached Owner
-  edition, and removed the token from the URL. The real invalid-token endpoint
-  returned `{valid:false, reason:"invalid"}`. Checkout returned HTTP 303 to
-  `checkout.dodopayments.com`.
-- Live mobile Lighthouse scored 100 in Performance, Accessibility, Best
-  Practices and SEO; LCP was 983 ms, TBT 1 ms, and CLS 0.
-
-## Desktop release
-
-GitHub Actions run `33203089339` passed all four platform builds and the
-checksum job. Release `v0.1.4` targets runtime source `dc16e19` and contains
-11 assets: macOS arm64/x64 DMGs and app archives, Windows EXE/MSI, Linux
-AppImage/DEB/RPM, `SHA256SUMS`, and valid `latest.json`.
-
-The published AMD64 DEB downloaded successfully. Its SHA-256 is
-`38da1ebc5c646fe45cfb661121d379cf10ce18d339205ce18f3f8f5b914ce048`,
-which matches `SHA256SUMS`; its metadata reports version `0.1.4`. A fresh live
-Linux browser resolves the primary button to the `v0.1.4` AppImage.
-
-## Known gaps and operator action
-
-No release-blocking product gap remains. Desktop packages are unsigned, as
-disclosed. macOS signing requires `APPLE_CERTIFICATE`,
-`APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`,
-`APPLE_PASSWORD`, and `APPLE_TEAM_ID`. Windows signing requires
-`WINDOWS_CERT_PFX` and `WINDOWS_CERT_PASSWORD`. The app has no updater and
-therefore intentionally ships no updater manifest.
-
-Ephemeral screenshots, URL reports, Lighthouse JSON, and downloaded release
-evidence are retained under `/work/evidence/repair-5/`.
+Verification evidence is retained at `/work/evidence/verify-6/`. No product
+code was modified.
