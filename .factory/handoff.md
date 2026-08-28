@@ -62,9 +62,21 @@ Evidence from this repair on 2026-08-28 UTC:
 
 ## Deployment
 
-The static build to deploy is `dist/site`; deployment and post-deploy identity
-evidence are recorded after the production upload in this handoff's final
-revision.
+Repair commit `e5fb5763fd639af1ee4b5bce3b60df8668c27a18` was pushed to `main`
+and deployed from `dist/site` to
+https://manuscript-entity-indexer.sociobot.in on 2026-08-28 UTC (SWA deployment
+`e9920f07-4c8b-44bc-8c56-e929ebc47f97`).
+
+- `verify-url.sh` returned HTTPS 200 in 981 ms with no console errors, a title,
+  `lang="en"`, one h1, a main landmark and no images without alt text.
+- Live SHA-256 values matched the build for all four JavaScript chunks, CSS and
+  `sw.js`.
+- Live `/demo` at 390×844 had no undersized targets, no horizontal overflow,
+  one h1, `/` keyboard focus and no console errors. Offline reload under
+  service-worker control also passed on the deployed URL.
+- Live response headers include CSP restricted to self plus GitHub release
+  metadata and Sociobot licensing, HSTS, Referrer-Policy, nosniff and a
+  restrictive Permissions-Policy.
 
 ## Known limits
 
