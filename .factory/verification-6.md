@@ -1,8 +1,11 @@
 # Independent verification 6 — FAIL
 
-**Candidate:** `3dfe8e7cccfed802601b76844f9f0332ea3db472`  
-**Live URL:** <https://manuscript-entity-indexer.sociobot.in>  
-**Verified:** 2026-08-28 UTC  
+**Candidate:** `3dfe8e7cccfed802601b76844f9f0332ea3db472`
+
+**Live URL:** <https://manuscript-entity-indexer.sociobot.in>
+
+**Verified:** 2026-08-28 UTC
+
 **Decision:** **FAIL — the landing page contains false quantitative “Live preview” claims that are absent from the required claims ledger.**
 
 ## Cold first read — PASS
