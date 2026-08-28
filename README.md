@@ -71,6 +71,8 @@ macOS and Windows builds are unsigned until the operator supplies signing
 certificates. Users must approve the operating system warning for these
 preview builds.
 
+The landing page selects the current installer for the visitor’s platform.
+
 ## Project notes
 
 - `.factory/brief.json` records the product scope and build command.

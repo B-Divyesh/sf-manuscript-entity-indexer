@@ -163,6 +163,18 @@ test('@claim:owner-license a verified owner license removes the three-file limit
   }
 });
 
+test('@claim:platform-download selects a current installer for the visitor', async ({ page }) => {
+  await page.route('https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify([{ tag_name: 'v0.1.0', assets: [{ name: 'Manuscript.Entity.Indexer_0.1.0_amd64.AppImage', browser_download_url: 'https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.0/Manuscript.Entity.Indexer_0.1.0_amd64.AppImage' }] }])
+  }));
+  await page.goto('/');
+  const download = page.getByRole('link', { name: 'Download for Linux' });
+  await expect(download).toBeVisible();
+  await expect(download).toHaveAttribute('href', /v0\.1\.0\/Manuscript\.Entity\.Indexer_0\.1\.0_amd64\.AppImage$/);
+});
+
 test('@a11y main routes have no serious accessibility violations', async ({ page }) => {
   const errors: string[] = [];
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });

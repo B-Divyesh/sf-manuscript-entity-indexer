@@ -34,7 +34,7 @@ and route fallbacks under `dist/site`.
 Verification completed on 28 August 2026:
 
 - Vitest: 3 passed.
-- Playwright: 13 passed, including all 11 claim tests.
+- Playwright: 14 passed, including all 12 claim tests.
 - Axe through Playwright: no serious or critical issues on six routes.
 - Console smoke test: no page errors or console errors on six routes.
 - Mobile check: the demo fits a 390 by 844 viewport without horizontal scroll.
@@ -57,15 +57,14 @@ no logos, people or readable product claims.
   tracked changes or page layout.
 - The 80% accepted-mention research target needs a separate reviewed manuscript
   corpus. It is not presented as a product claim.
-- The release workflow is ready, but release assets do not exist until tag
-  `v0.1.0` reaches GitHub Actions.
+- Release `v0.1.0` is public with 11 assets across macOS, Windows and Linux.
+- `Manuscript.Entity.Indexer_0.1.0_amd64.deb` was downloaded from the release
+  and passed verification against the published `SHA256SUMS` file.
 
 ## Needs operator action
 
 - Register `manuscript-entity-indexer` in Sociobot billing with a $24 one-time
   price and the production return URL.
-- Publish tag `v0.1.0` if it was not pushed by this worker, then confirm the
-  four GitHub matrix jobs and verify one file against `SHA256SUMS`.
 - Current desktop packages are unsigned. macOS signing needs
   `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`,
   `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID`.

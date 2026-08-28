@@ -75,5 +75,12 @@
     "where": "landing pricing, workbench license panel, terms, README",
     "test": "npm run test:claims -- --grep @claim:owner-license",
     "sandbox": "fresh browser context with a recorded valid verification response; verify a license and import four files"
+  },
+  {
+    "id": "platform-download",
+    "claim": "The landing page selects a current desktop installer for the visitor's platform.",
+    "where": "landing download block, README",
+    "test": "npm run test:claims -- --grep @claim:platform-download",
+    "sandbox": "fresh browser context with recorded GitHub release metadata; assert the Linux button links to the matching release asset"
   }
 ]
