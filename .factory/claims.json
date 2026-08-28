@@ -21,6 +21,13 @@
     "sandbox": "demo flow with every request observed; assert same-origin only"
   },
   {
+    "id": "no-tracking",
+    "claim": "There is no analytics or advertising, and the app does not upload manuscript text or store it in the cloud.",
+    "where": "README, privacy page",
+    "test": "npm run test:claims -- --grep @claim:no-tracking",
+    "sandbox": "fresh browser context; visit landing, demo, app, privacy and terms while recording requests, cookies and browser storage"
+  },
+  {
     "id": "offline-reload",
     "claim": "Works after the first visit without internet.",
     "where": "landing facts, README",
@@ -36,7 +43,7 @@
   },
   {
     "id": "alias-review",
-    "claim": "Authors can search, rename, classify, merge and undo suggested aliases.",
+    "claim": "Authors can search, rename, classify, merge and undo suggested aliases, with the matching rule shown.",
     "where": "landing preview, workbench, README",
     "test": "npm run test:claims -- --grep @claim:alias-review",
     "sandbox": "demo project; merge and undo Captain Venn, then rename and classify Mara Venn and find the edit with search"
@@ -50,7 +57,7 @@
   },
   {
     "id": "chapter-evidence",
-    "claim": "Each mention opens its source chapter copy.",
+    "claim": "Each detected mention opens its source chapter copy.",
     "where": "workbench evidence list, README",
     "test": "npm run test:claims -- --grep @claim:chapter-evidence",
     "sandbox": "demo project; open Mara Venn evidence and assert the chapter dialog contains its source sentence"
@@ -92,17 +99,17 @@
   },
   {
     "id": "billing-privacy",
-    "claim": "Checkout stays on Sociobot, while license checks send only the license token and no card details enter this app.",
+    "claim": "The purchase link starts at Sociobot, then opens Dodo's hosted checkout; license checks send only the token and no card details enter this app.",
     "where": "privacy page, pricing, README",
     "test": "npm run test:claims -- --grep @claim:billing-privacy",
-    "sandbox": "fresh browser context with a recorded invalid response; inspect the verification method, URL and body, checkout origin and absence of card fields"
+    "sandbox": "fresh browser context with a recorded invalid response; inspect the verification method, URL and body, follow the checkout redirect, and check for card fields"
   },
   {
     "id": "checkout-available",
-    "claim": "The $24 purchase link starts Sociobot's hosted checkout.",
+    "claim": "The $24 purchase link starts at Sociobot and redirects to Dodo's hosted checkout.",
     "where": "landing pricing, workbench, terms, README",
     "test": "npm run test:claims -- --grep @claim:checkout-available",
-    "sandbox": "live response check without following the redirect; assert HTTP 303 to a Dodo-hosted checkout session"
+    "sandbox": "live response check; assert HTTP 303 and final Dodo-hosted checkout URL"
   },
   {
     "id": "platform-download",
@@ -110,5 +117,19 @@
     "where": "landing download block, README",
     "test": "npm run test:claims -- --grep @claim:platform-download",
     "sandbox": "three fresh browser contexts with recorded GitHub release metadata; assert each detected platform links to its matching release asset"
+  },
+  {
+    "id": "refund-revocation",
+    "claim": "Approved refunds revoke the owner license.",
+    "where": "terms",
+    "test": "npm run test:claims -- --grep @claim:refund-revocation",
+    "sandbox": "fresh browser context with a recorded refunded-license response; assert paid access is removed"
+  },
+  {
+    "id": "release-workflow",
+    "claim": "The release workflow builds macOS, Windows and Linux installers, plus SHA256SUMS and latest.json.",
+    "where": "README",
+    "test": "npm run test:claims -- --grep @claim:release-workflow",
+    "sandbox": "inspect the committed release workflow and manifest generator for each platform and named release artifact"
   }
 ]

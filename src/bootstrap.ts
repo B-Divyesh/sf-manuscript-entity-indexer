@@ -7,7 +7,8 @@ declare global {
   }
 }
 
-const isStaticLanding = location.pathname === '/' && !new URLSearchParams(location.search).has('license');
+const query = new URLSearchParams(location.search);
+const isStaticLanding = location.pathname === '/' && !query.has('license') && query.get('demo') !== '1';
 let pendingSearchFocus = false;
 
 function isTextEntryTarget(target: EventTarget | null): boolean {

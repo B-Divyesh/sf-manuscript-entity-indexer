@@ -1,6 +1,7 @@
 import type { Project } from './types';
 
 const REAL_KEY = 'mei:project:v1';
+const DEMO_KEY = 'demo:mei:project:v1';
 
 export function loadProject(): Project | null {
   try {
@@ -12,12 +13,21 @@ export function loadProject(): Project | null {
 }
 
 export function saveProject(project: Project, isDemo: boolean): void {
-  if (isDemo) return;
+  if (isDemo) {
+    // Demo edits are deliberately kept in a separate, disposable namespace.
+    // The demo is rebuilt on entry, so this can never become a real project.
+    sessionStorage.setItem(DEMO_KEY, JSON.stringify(project));
+    return;
+  }
   localStorage.setItem(REAL_KEY, JSON.stringify(project));
 }
 
 export function clearProject(): void {
   localStorage.removeItem(REAL_KEY);
+}
+
+export function clearDemoProject(): void {
+  sessionStorage.removeItem(DEMO_KEY);
 }
 
 export function downloadText(filename: string, text: string, type = 'text/plain'): void {

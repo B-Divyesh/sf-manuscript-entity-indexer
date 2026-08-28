@@ -48,9 +48,9 @@ h3 { font-size: 1.35rem; }
 .edition-line, .section-kicker { display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 6px 0; font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .hero-section, .preview-section, .walkthrough-section, .steps-section, .privacy-section, .price-section { padding-left: clamp(16px, 3vw, 48px); padding-right: clamp(16px, 3vw, 48px); }
 .hero-section { padding-top: 16px; }
-.hero-grid { display: grid; grid-template-columns: minmax(0, .86fr) minmax(420px, 1.14fr); gap: clamp(24px, 5vw, 80px); align-items: start; padding: clamp(32px, 6vw, 88px) 0 64px; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, .86fr) minmax(420px, 1.14fr); gap: clamp(24px, 5vw, 80px); align-items: start; padding: clamp(28px, 3vw, 48px) 0 48px; }
 .hero-copy { max-width: 760px; }
-.hero-copy h1 { margin: 0 0 28px; max-width: 9.5ch; }
+.hero-copy h1 { margin: 0 0 20px; max-width: 10.5ch; font-size: clamp(2.75rem, 5.5vw, 5.5rem); }
 .eyebrow, .utility-label { font-family: 'Arial Narrow', Arial, sans-serif; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .15em; }
 .hero-copy .eyebrow { color: var(--red-dark); }
 .dek { max-width: 51ch; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1.15rem, 2vw, 1.55rem); line-height: 1.35; }
@@ -230,7 +230,6 @@ dialog > p { margin: 0; padding: 14px 20px; border-top: 1px solid var(--ink); co
   .site-header { align-items: flex-start; padding: 12px 16px; }
   .site-header nav { gap: 12px; }
   .site-header nav a { font-size: 1rem; }
-  .site-header nav a:nth-child(3) { display: none; }
   .wordmark span:last-child { display: none; }
   .wordmark-mark { font-size: 1rem; }
   .hero-grid { padding-top: 40px; }

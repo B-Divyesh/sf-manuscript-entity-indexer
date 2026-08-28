@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Manuscript Entity Indexer — Track story details</title>
-    <meta name="description" content="Index characters, places and aliases in multilingual manuscripts without uploading your drafts." />
+    <title>Manuscript Entity Indexer — Review manuscript names</title>
+    <meta name="description" content="Review names found in multilingual manuscripts without uploading your drafts." />
     <meta name="theme-color" content="#f3efe5" />
     <link rel="canonical" href="https://manuscript-entity-indexer.sociobot.in/" />
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -34,11 +34,11 @@
       </header>
       <main id="main">
         <section class="hero-section">
-          <div class="edition-line"><span>No. 01</span><span>Offline author’s desk</span><span>2026</span></div>
+          <div class="edition-line"><span>Local processing</span><span>Markdown · text · DOCX</span></div>
           <div class="hero-grid">
             <div class="hero-copy">
               <p class="eyebrow">A continuity ledger for long drafts</p>
-              <h1 tabindex="-1">Index every name across your manuscript</h1>
+              <h1 tabindex="-1">Review names found across your manuscript</h1>
               <p class="dek">For novelists working across languages who need one private place to check characters, places and aliases.</p>
               <div class="hero-actions">
                 <a class="button button-primary route-link" href="/demo">Try it with sample data</a>
@@ -57,10 +57,10 @@
           </div>
         </section>
         <section class="preview-section" aria-labelledby="preview-heading">
-          <div class="section-kicker"><span>On the desk</span><span>Sample output</span></div>
-          <h2 id="preview-heading">See every mention before you merge it</h2>
+          <div class="section-kicker"><span>Sample entity index</span><span>Sample output</span></div>
+          <h2 id="preview-heading">Review each detected mention before you merge names</h2>
           <div class="paper-preview">
-            <div class="preview-list" aria-label="Sample entity list"><p class="utility-label" data-preview-entity-count>Entities · 13</p><p class="preview-active" data-preview-entity="Mara Venn"><strong>Mara Venn</strong><span>4 mentions</span></p><p data-preview-entity="Captain Venn"><strong>Captain Venn</strong><span>3 mentions</span></p><p data-preview-entity="林梅"><strong>林梅</strong><span>2 mentions</span></p></div>
+            <div class="preview-list" aria-label="Sample entity list"><p class="utility-label" data-preview-entity-count>Names · 13</p><p class="preview-active" data-preview-entity="Mara Venn"><strong>Mara Venn</strong><span>4 mentions</span></p><p data-preview-entity="Captain Venn"><strong>Captain Venn</strong><span>3 mentions</span></p><p data-preview-entity="林梅"><strong>林梅</strong><span>2 mentions</span></p></div>
             <article class="preview-evidence"><p class="utility-label">Evidence · 01 — The tide ledger</p><blockquote>At dusk, <mark>Mara Venn</mark> stepped off the ferry at Glass Harbor.</blockquote><p class="suggestion"><span>Suggested alias</span> Captain Venn · Both names include “Venn”.</p></article>
             <aside class="preview-ledger"><p class="utility-label">Ledger</p><p><span>Type</span><strong>Person</strong></p><p><span>Aliases</span><strong>1 to review</strong></p><p><span>Chapters</span><strong>3</strong></p></aside>
           </div>
@@ -79,25 +79,25 @@
           <h2 id="steps-heading">Build the ledger in three steps</h2>
           <ol class="editorial-steps">
             <li><span>1</span><div><h3>Choose your manuscript folder</h3><p>Open Markdown, text and DOCX chapters. Source files stay unchanged.</p></div></li>
-            <li><span>2</span><div><h3>Review marked names</h3><p>Check Unicode-aware candidates. Accept or reject each alias suggestion.</p></div></li>
+            <li><span>2</span><div><h3>Review marked names</h3><p>Review names in Latin, Chinese, Japanese and Korean text. Accept or reject each alias suggestion.</p></div></li>
             <li><span>3</span><div><h3>Check story continuity</h3><p>Search evidence by chapter. Add timeline notes and export the ledger.</p></div></li>
           </ol>
         </section>
         <section class="privacy-section" aria-labelledby="boundaries-heading">
-          <div><p class="eyebrow">The quiet margin</p><h2 id="boundaries-heading">What never happens to your draft</h2></div>
+          <div><p class="eyebrow">Draft privacy</p><h2 id="boundaries-heading">What never happens to your draft</h2></div>
           <ul><li>No manuscript upload.</li><li>No source-file changes.</li></ul>
           <p>The index uses small, visible rules. You decide which names belong together.</p>
         </section>
         <section class="price-section" aria-labelledby="price-heading">
           <div><p class="eyebrow">Owner edition</p><h2 id="price-heading">Index folders with more than three files</h2><p>Free indexes three files at a time. The owner edition removes that limit.</p></div>
-          <div class="price-ticket"><p><span class="price">$24</span> one time</p><a class="button button-primary" href="https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/checkout">Buy the owner edition</a><p>Sociobot is the merchant of record. Refunds revoke the license.</p></div>
+          <div class="price-ticket"><p><span class="price">$24</span> one time</p><a class="button button-primary" href="https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/checkout">Buy the owner edition</a><p>The purchase link starts at Sociobot, then opens Dodo’s hosted checkout. This app never receives card details.</p></div>
           <div class="download-block" id="download-block"><p class="utility-label">Desktop app · unsigned preview</p><a class="button button-ink" href="https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases">Downloads are being published</a><p>macOS, Windows and Linux builds appear on the release page.</p></div>
         </section>
       </main>
       <footer class="site-footer">
         <p>Keep a private continuity ledger beside your manuscript.</p>
         <nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav>
-        <p class="folio">v0.1.5 · Original generated still life</p>
+        <p class="folio">Version 0.1.5</p>
       </footer>
     </div>
     <div id="route-status" class="sr-only" aria-live="polite"></div>

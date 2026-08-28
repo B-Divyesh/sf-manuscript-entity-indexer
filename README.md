@@ -1,10 +1,10 @@
 # Manuscript Entity Indexer
 
-Index characters, places and aliases without uploading your manuscript.
+Review names found in your manuscript without uploading it.
 
 This local continuity ledger is for novelists working across languages. It
-reads Markdown, text and DOCX chapters, then marks recurring Latin, Han, Kana
-and Hangul names with small, visible rules. The author reviews every alias merge.
+reads Markdown, text and DOCX chapters, then marks repeated names in Latin,
+Chinese, Japanese and Korean text. The author reviews every alias merge.
 
 Try the isolated sample at
 https://manuscript-entity-indexer.sociobot.in/demo. Demo edits stay in memory
@@ -13,24 +13,24 @@ and disappear on reload.
 ## What it does
 
 - Opens a manuscript folder without changing its source files.
-- Finds recurring person and place candidates with Unicode-aware rules.
-- Shows every mention beside its chapter copy.
-- Suggests possible aliases and explains the matching rule.
+- Finds repeated person and place names in Latin, Chinese, Japanese and Korean text.
+- Shows detected mentions beside their chapter copy.
+- Suggests possible aliases and shows the matching rule.
 - Lets the author merge, rename, classify, search and undo alias changes.
 - Adds entity-linked continuity notes and exports the ledger as CSV.
 - Stores a real web index in local browser storage until the author clears it.
 - Works after the first web visit without internet.
 
 The free edition indexes three files at a time. A verified owner license costs
-$24 once and removes that limit. Checkout stays on Sociobot. License checks
-send only the license token.
+$24 once and removes that limit. The purchase link starts at Sociobot, then
+opens Dodo's hosted checkout. License checks send only the license token.
 
 ## Privacy
 
 Manuscript processing runs on the device. The demo makes no cross-origin
 requests. The landing page may request release metadata from GitHub. License
-verification sends only the pasted token to Sociobot. There is no analytics,
-advertising, manuscript telemetry or cloud manuscript storage.
+verification sends only the pasted token to Sociobot. There is no analytics or
+advertising. The app does not upload manuscript text or store it in the cloud.
 
 Read the shipped `/privacy` and `/terms` pages for the full policies.
 
@@ -63,15 +63,9 @@ local platform package with `npm run tauri build`.
 
 ## Desktop releases
 
-Tags matching `v*` start `.github/workflows/release.yml`. GitHub Actions builds
-unsigned macOS arm64 and x86_64 packages, Windows packages, Linux AppImage and
-DEB packages. The release also contains `SHA256SUMS` and `latest.json`.
-
-macOS and Windows builds are unsigned until the operator supplies signing
-certificates. Users must approve the operating system warning for these
-preview builds.
-
-The landing page selects current macOS, Windows and Linux installers.
+The release workflow builds macOS, Windows and Linux installers, plus
+`SHA256SUMS` and `latest.json`. The landing page selects an installer for the
+current platform.
 
 ## Project notes
 

@@ -58,6 +58,10 @@ function comparableTokens(name: string): Set<string> {
   return new Set(tokens);
 }
 
+function displayToken(name: string, normalizedToken: string): string {
+  return name.split(/[\s·・]+/u).find(token => token.toLocaleLowerCase() === normalizedToken) ?? normalizedToken;
+}
+
 function suggestAliases(entities: Entity[]): AliasSuggestion[] {
   const suggestions: AliasSuggestion[] = [];
   for (let i = 0; i < entities.length; i += 1) {
@@ -73,7 +77,7 @@ function suggestAliases(entities: Entity[]): AliasSuggestion[] {
           id: stableId('suggestion', `${left.id}:${right.id}`),
           sourceId: left.id,
           targetId: right.id,
-          reason: common ? `Both names include “${common}”.` : 'The names share a CJK character.'
+          reason: common ? `Both names include “${displayToken(left.name, common)}”.` : 'The names share a CJK character.'
         });
       }
     }

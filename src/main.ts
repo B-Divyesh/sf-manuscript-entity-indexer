@@ -1,6 +1,6 @@
 import { indexDocuments, mergeEntities } from './indexer';
 import { sampleDocuments } from './sample';
-import { clearProject, downloadText, loadProject, saveProject } from './storage';
+import { clearDemoProject, clearProject, downloadText, loadProject, saveProject } from './storage';
 import type { EntityKind, ManuscriptDocument, Project } from './types';
 import { cachedLicenseState, captureLicense, checkoutUrl, removeLicense, storeLicense, verifyLicense, type LicenseState } from './license';
 import { resolveCurrentDownload } from './downloads';
@@ -20,7 +20,8 @@ let license: LicenseState = cachedLicenseState();
 const samplePreview = indexDocuments('The Glass Harbor papers', structuredClone(sampleDocuments));
 
 const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]!);
-const titleFor = (path: string): string => path === '/' ? 'Manuscript Entity Indexer — Track story details'
+const titleFor = (path: string): string => isDemoPath() ? 'Demo — Manuscript Entity Indexer'
+  : path === '/' ? 'Manuscript Entity Indexer — Review manuscript names'
   : path === '/demo' ? 'Demo — Manuscript Entity Indexer'
   : path === '/app' ? 'Index — Manuscript Entity Indexer'
   : path === '/privacy' ? 'Privacy — Manuscript Entity Indexer'
@@ -42,7 +43,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>Keep a private continuity ledger beside your manuscript.</p>
     <nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav>
-    <p class="folio">v0.1.5 · Original generated still life</p>
+    <p class="folio">Version 0.1.5</p>
   </footer>`;
 }
 
@@ -61,11 +62,11 @@ function sampleMentionCount(name: string): number {
 function landing(): string {
   return `${header()}<main id="main">
     <section class="hero-section">
-      <div class="edition-line"><span>No. 01</span><span>Offline author’s desk</span><span>2026</span></div>
+      <div class="edition-line"><span>Local processing</span><span>Markdown · text · DOCX</span></div>
       <div class="hero-grid">
         <div class="hero-copy">
           <p class="eyebrow">A continuity ledger for long drafts</p>
-          <h1 tabindex="-1">Index every name across your manuscript</h1>
+          <h1 tabindex="-1">Review names found across your manuscript</h1>
           <p class="dek">For novelists working across languages who need one private place to check characters, places and aliases.</p>
           <div class="hero-actions">
             <a class="button button-primary route-link" href="/demo">Try it with sample data</a>
@@ -81,11 +82,11 @@ function landing(): string {
     </section>
 
     <section class="preview-section" aria-labelledby="preview-heading">
-      <div class="section-kicker"><span>On the desk</span><span>Sample output</span></div>
-      <h2 id="preview-heading">See every mention before you merge it</h2>
+      <div class="section-kicker"><span>Sample entity index</span><span>Sample output</span></div>
+      <h2 id="preview-heading">Review each detected mention before you merge names</h2>
       <div class="paper-preview">
         <div class="preview-list" aria-label="Sample entity list">
-          <p class="utility-label" data-preview-entity-count>Entities · ${samplePreview.entities.length}</p>
+          <p class="utility-label" data-preview-entity-count>Names · ${samplePreview.entities.length}</p>
           <p class="preview-active" data-preview-entity="Mara Venn"><strong>Mara Venn</strong><span>${sampleMentionCount('Mara Venn')} mentions</span></p>
           <p data-preview-entity="Captain Venn"><strong>Captain Venn</strong><span>${sampleMentionCount('Captain Venn')} mentions</span></p>
           <p data-preview-entity="林梅"><strong>林梅</strong><span>${sampleMentionCount('林梅')} mentions</span></p>
@@ -119,20 +120,20 @@ function landing(): string {
       <h2 id="steps-heading">Build the ledger in three steps</h2>
       <ol class="editorial-steps">
         <li><span>1</span><div><h3>Choose your manuscript folder</h3><p>Open Markdown, text and DOCX chapters. Source files stay unchanged.</p></div></li>
-        <li><span>2</span><div><h3>Review marked names</h3><p>Check Unicode-aware candidates. Accept or reject each alias suggestion.</p></div></li>
+        <li><span>2</span><div><h3>Review marked names</h3><p>Review names in Latin, Chinese, Japanese and Korean text. Accept or reject each alias suggestion.</p></div></li>
         <li><span>3</span><div><h3>Check story continuity</h3><p>Search evidence by chapter. Add timeline notes and export the ledger.</p></div></li>
       </ol>
     </section>
 
     <section class="privacy-section" aria-labelledby="boundaries-heading">
-      <div><p class="eyebrow">The quiet margin</p><h2 id="boundaries-heading">What never happens to your draft</h2></div>
+      <div><p class="eyebrow">Draft privacy</p><h2 id="boundaries-heading">What never happens to your draft</h2></div>
       <ul><li>No manuscript upload.</li><li>No source-file changes.</li></ul>
       <p>The index uses small, visible rules. You decide which names belong together.</p>
     </section>
 
     <section class="price-section" aria-labelledby="price-heading">
       <div><p class="eyebrow">Owner edition</p><h2 id="price-heading">Index folders with more than three files</h2><p>Free indexes three files at a time. The owner edition removes that limit.</p></div>
-      <div class="price-ticket"><p><span class="price">$24</span> one time</p><a class="button button-primary" href="${checkoutUrl}">Buy the owner edition</a><p>Sociobot is the merchant of record. Refunds revoke the license.</p></div>
+      <div class="price-ticket"><p><span class="price">$24</span> one time</p><a class="button button-primary" href="${checkoutUrl}">Buy the owner edition</a><p>The purchase link starts at Sociobot, then opens Dodo’s hosted checkout. This app never receives card details.</p></div>
       <div class="download-block" id="download-block"><p class="utility-label">Desktop app · unsigned preview</p><a class="button button-ink" href="https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases">Downloads are being published</a><p>macOS, Windows and Linux builds appear on the release page.</p></div>
     </section>
   </main>${footer()}`;
@@ -175,19 +176,19 @@ function projectWorkbench(isDemo: boolean): string {
   const suggestions = selected ? project.suggestions.filter(suggestion => suggestion.sourceId === selected.id || suggestion.targetId === selected.id) : [];
   return `${isDemo ? demoBanner() : ''}${header()}<main id="main" class="workbench-main">
     <div class="workbench-head">
-      <div><p class="eyebrow">${escapeHtml(project.name)} · ${project.documents.length} files</p><h1 tabindex="-1">Review your entity index</h1></div>
+      <div><p class="eyebrow">${escapeHtml(project.name)} · ${project.documents.length} files</p><h1 tabindex="-1">Review names found in your manuscript</h1></div>
       <div class="workbench-actions"><label class="search-label" for="index-search"><span>Search mentions</span><input id="index-search" type="search" value="${escapeHtml(search)}" placeholder="Name, place or phrase" autocomplete="off"></label><button type="button" data-action="export-csv">Export CSV</button><button type="button" data-action="choose-folder">Index another folder</button>${!isDemo ? '<button type="button" class="clear-index" data-action="clear-project">Clear local index</button>' : ''}</div>
       <input id="folder-input" class="visually-hidden-input" type="file" accept=".md,.markdown,.txt,.docx" multiple webkitdirectory aria-label="Choose manuscript files">
     </div>
     ${notice ? `<p class="notice" role="status">${escapeHtml(notice)}${undoSnapshot ? ' <button type="button" data-action="undo">Undo</button>' : ''}</p>` : ''}
     ${errorBanner()}
     <div class="mobile-tabs" role="tablist" aria-label="Workbench views">
-      ${(['entities', 'evidence', 'timeline'] as const).map(view => `<button id="${view}-tab" role="tab" aria-selected="${activeView === view}" aria-controls="${view}-panel" tabindex="${activeView === view ? '0' : '-1'}" data-view="${view}">${view[0].toUpperCase()}${view.slice(1)}</button>`).join('')}
+      ${(['entities', 'evidence', 'timeline'] as const).map(view => `<button id="${view}-tab" role="tab" aria-selected="${activeView === view}" aria-controls="${view}-panel" tabindex="${activeView === view ? '0' : '-1'}" data-view="${view}">${view === 'timeline' ? 'Ledger' : view[0].toUpperCase() + view.slice(1)}</button>`).join('')}
     </div>
     <div class="workbench-grid">
       <section id="entities-panel" role="tabpanel" aria-labelledby="entities-tab" class="entity-rail ${activeView !== 'entities' ? 'mobile-hidden' : ''}">
-        <div class="panel-heading"><h2 id="entities-heading">Entities</h2><span>${visibleEntities.length}</span></div>
-        ${visibleEntities.length ? `<div class="entity-list" role="listbox" aria-label="Extracted entities">${visibleEntities.map((entity, index) => `<button type="button" role="option" aria-selected="${entity.id === selected?.id}" data-entity="${entity.id}" data-index="${index}"><span>${escapeHtml(entity.name)}</span><small>${entity.kind} · ${entity.mentionIds.length}</small></button>`).join('')}</div>` : `<div class="panel-empty"><p>No entities match “${escapeHtml(search)}”.</p><button type="button" data-action="clear-search">Clear search</button></div>`}
+        <div class="panel-heading"><h2 id="entities-heading">Names</h2><span>${visibleEntities.length}</span></div>
+        ${visibleEntities.length ? `<div class="entity-list" role="listbox" aria-label="Names found in the manuscript">${visibleEntities.map((entity, index) => `<button type="button" role="option" aria-selected="${entity.id === selected?.id}" data-entity="${entity.id}" data-index="${index}"><span>${escapeHtml(entity.name)}</span><small>${entity.kind} · ${entity.mentionIds.length}</small></button>`).join('')}</div>` : `<div class="panel-empty"><p>No names match “${escapeHtml(search)}”.</p><button type="button" data-action="clear-search">Clear search</button></div>`}
       </section>
       <section id="evidence-panel" role="tabpanel" aria-labelledby="evidence-tab" class="evidence-desk ${activeView !== 'evidence' ? 'mobile-hidden' : ''}">
         <div class="panel-heading"><h2 id="evidence-heading">Evidence</h2><span>${mentions.length} mentions</span></div>
@@ -195,7 +196,7 @@ function projectWorkbench(isDemo: boolean): string {
         ${suggestions.map(suggestion => {
           const otherId = suggestion.sourceId === selected.id ? suggestion.targetId : suggestion.sourceId;
           const other = project!.entities.find(entity => entity.id === otherId);
-          return other ? `<aside class="alias-suggestion"><p><strong>Suggested alias</strong> · heuristic</p><p><span>${escapeHtml(other.name)}</span> ${escapeHtml(suggestion.reason)}</p><div><button type="button" data-merge="${other.id}">Merge as alias</button><button type="button" data-reject="${suggestion.id}">Keep separate</button></div></aside>` : '';
+          return other ? `<aside class="alias-suggestion"><p><strong>Suggested alias</strong></p><p><span>${escapeHtml(other.name)}</span> ${escapeHtml(suggestion.reason)}</p><div><button type="button" data-merge="${other.id}">Merge as alias</button><button type="button" data-reject="${suggestion.id}">Keep separate</button></div></aside>` : '';
         }).join('')}
         <ol class="mention-list">${mentions.map((mention, index) => `<li id="mention-${mention.id}"><button type="button" class="chapter-link" data-doc="${mention.documentId}">${String(index + 1).padStart(2, '0')} · ${escapeHtml(mention.documentTitle)}</button><blockquote>${highlight(mention.excerpt, mention.matchedText)}</blockquote></li>`).join('')}</ol>` : '<div class="panel-empty"><p>No entity is selected.</p><p>Choose a name from the entity list.</p></div>'}
       </section>
@@ -223,11 +224,11 @@ function highlight(text: string, match: string): string {
 }
 
 function privacyPage(): string {
-  return `${header()}<main id="main" class="legal-main"><p class="eyebrow">Policy · 28 August 2026</p><h1 tabindex="-1">Your manuscript stays yours</h1><p class="legal-dek">The app reads selected files on your device. It does not upload manuscript text.</p><section><h2>What the app stores</h2><p>Outside the demo, this browser stores your index until you clear it. Demo changes stay in memory and disappear when you leave.</p><p>The app reads chapter copies and never changes source chapters.</p></section><section><h2>Network requests</h2><p>The index needs no network. The landing page may ask GitHub for current download links. License checks send only your license token to Sociobot.</p></section><section><h2>Payments</h2><p>Sociobot and Dodo handle checkout, receipts and refunds. No card details enter this app.</p></section><section><h2>Remove your data</h2><p>Use “Clear local index” in the workbench. You can also clear this site’s browser storage.</p></section><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>${footer()}`;
+  return `${header()}<main id="main" class="legal-main"><p class="eyebrow">Policy · 28 August 2026</p><h1 tabindex="-1">Your manuscript stays yours</h1><p class="legal-dek">The app reads selected files on your device. It does not upload manuscript text.</p><section><h2>What the app stores</h2><p>Outside the demo, this browser stores your index until you clear it. Demo changes use a separate temporary area and disappear when you leave.</p><p>The app reads chapter copies and never changes source chapters.</p></section><section><h2>Network requests</h2><p>The index needs no network. The landing page may ask GitHub for current download links. License checks send only your license token to Sociobot.</p></section><section><h2>Payments</h2><p>The purchase link starts at Sociobot and opens Dodo’s hosted checkout. No card details enter this app.</p></section><section><h2>Remove your data</h2><p>Use “Clear local index” in the workbench. You can also clear this site’s browser storage.</p></section><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>${footer()}`;
 }
 
 function termsPage(): string {
-  return `${header()}<main id="main" class="legal-main"><p class="eyebrow">Terms · 28 August 2026</p><h1 tabindex="-1">Use the index as an editing aid</h1><p class="legal-dek">These terms cover Manuscript Entity Indexer and its one-time owner license.</p><section><h2>Your files and decisions</h2><p>You keep all rights to your manuscript. Extraction and alias results are heuristic suggestions. Review them before relying on the ledger.</p></section><section><h2>License</h2><p>The free edition indexes three files at a time. A valid owner license removes that file limit for one purchaser’s devices.</p></section><section><h2>Refunds and availability</h2><p>Sociobot is the merchant of record. Approved refunds revoke the license. The software is provided as available without a promise that every name will be found.</p></section><section><h2>Acceptable use</h2><p>Use the app only with files you may access. Do not bypass license checks or redistribute paid builds.</p></section><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>${footer()}`;
+  return `${header()}<main id="main" class="legal-main"><p class="eyebrow">Terms · 28 August 2026</p><h1 tabindex="-1">Use the index as an editing aid</h1><p class="legal-dek">These terms cover Manuscript Entity Indexer and its one-time owner license.</p><section><h2>Your files and decisions</h2><p>You keep all rights to your manuscript. Extraction and alias results are heuristic suggestions. Review them before relying on the ledger.</p></section><section><h2>License</h2><p>The free edition indexes three files at a time. A valid owner license removes that file limit.</p></section><section><h2>Refunds and availability</h2><p>Approved refunds revoke the license. The software is provided as available without a promise that every name will be found.</p></section><section><h2>Acceptable use</h2><p>Use the app only with files you may access. Do not bypass license checks or redistribute paid builds.</p></section><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>${footer()}`;
 }
 
 function notFound(): string {
@@ -240,9 +241,11 @@ function render(focusHeading = false): void {
   const path = location.pathname.replace(/\/$/, '') || '/';
   document.title = titleFor(path);
   const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-  if (canonical) canonical.href = `https://manuscript-entity-indexer.sociobot.in${path === '/' ? '/' : path}`;
-  if (path === '/') app.innerHTML = landing();
-  else if (path === '/demo' || path === '/app') app.innerHTML = projectWorkbench(path === '/demo');
+  const canonicalPath = isDemoPath() ? '/demo' : path;
+  if (canonical) canonical.href = `https://manuscript-entity-indexer.sociobot.in${canonicalPath === '/' ? '/' : canonicalPath}`;
+  if (isDemoPath()) app.innerHTML = projectWorkbench(true);
+  else if (path === '/') app.innerHTML = landing();
+  else if (path === '/app') app.innerHTML = projectWorkbench(false);
   else if (path === '/privacy') app.innerHTML = privacyPage();
   else if (path === '/terms') app.innerHTML = termsPage();
   else app.innerHTML = notFound();
@@ -253,14 +256,19 @@ function render(focusHeading = false): void {
 }
 
 export function navigate(path: string): void {
+  const leavingDemo = isDemoPath() && path !== '/demo';
   history.pushState({}, '', path);
   if (path === '/demo') loadDemo();
-  else if (path === '/app') project = loadProject();
+  else {
+    if (leavingDemo) clearDemoProject();
+    if (path === '/app') project = loadProject();
+  }
   window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   render(true);
 }
 
 function loadDemo(): void {
+  clearDemoProject();
   project = indexDocuments('The Glass Harbor papers', structuredClone(sampleDocuments));
   selectedEntityId = project.entities.find(entity => entity.name === 'Mara Venn')?.id ?? project.entities[0]?.id ?? '';
   search = '';
@@ -458,7 +466,11 @@ function handleAction(action: string): void {
 }
 
 window.addEventListener('popstate', () => {
-  if (isDemoPath()) loadDemo(); else if (location.pathname === '/app') project = loadProject();
+  if (isDemoPath()) loadDemo();
+  else {
+    clearDemoProject();
+    if (location.pathname === '/app') project = loadProject();
+  }
   render(true);
 });
 

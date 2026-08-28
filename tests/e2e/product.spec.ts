@@ -10,7 +10,7 @@ test('@claim:demo-isolation demo loads complete sample data and does not persist
   await page.getByRole('link', { name: 'Try it with sample data' }).first().click();
   await expect(page).toHaveURL(/\/demo$/);
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Review your entity index' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Review names found in your manuscript' })).toBeVisible();
   await page.getByRole('option', { name: /Mara Venn/ }).click();
   await page.getByLabel('Display name').fill('Mara Venn Edited');
   await page.getByRole('button', { name: 'Save entity' }).click();
@@ -30,7 +30,7 @@ test('@claim:sample-preview landing sample counts match the rendered demo', asyn
   }
 
   await page.getByRole('link', { name: 'Try it with sample data' }).first().click();
-  await expect(page.getByRole('heading', { name: 'Review your entity index' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Review names found in your manuscript' })).toBeVisible();
   const demoTotal = await page.locator('[data-entity]').count();
   expect(landingTotal).toBe(demoTotal);
   for (const [name, count] of landingMentions) {
@@ -39,7 +39,21 @@ test('@claim:sample-preview landing sample counts match the rendered demo', asyn
   }
 
   await page.getByRole('link', { name: /Manuscript Entity Indexer home/ }).click();
-  await expect(page.locator('[data-preview-entity-count]')).toHaveText(`Entities · ${demoTotal}`);
+  await expect(page.locator('[data-preview-entity-count]')).toHaveText(`Names · ${demoTotal}`);
+});
+
+test('@regression ?demo=1 opens the isolated sample with its banner and reset control', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await expect(page).toHaveTitle('Demo — Manuscript Entity Indexer');
+  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Review names found in your manuscript' })).toBeVisible();
+  const realStorage = await page.evaluate(() => localStorage.getItem('mei:project:v1'));
+  expect(realStorage).toBeNull();
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(page.getByRole('heading', { name: 'Index your manuscript folder' })).toBeVisible();
+  await expect(page.evaluate(() => sessionStorage.getItem('demo:mei:project:v1'))).resolves.toBeNull();
 });
 
 test('@claim:local-processing demo indexing makes no cross-origin requests', async ({ page }) => {
@@ -54,6 +68,24 @@ test('@claim:local-processing demo indexing makes no cross-origin requests', asy
   expect(external).toEqual([]);
 });
 
+test('@claim:no-tracking all first-party routes make no analytics, advertising, manuscript upload, or cloud-storage requests', async ({ page }) => {
+  const requests: Array<{ url: string; method: string; body: string | null }> = [];
+  page.on('request', request => requests.push({ url: request.url(), method: request.method(), body: request.postData() }));
+  await page.route('https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1', route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify([{ tag_name: 'v0.1.5', assets: [] }])
+  }));
+  for (const path of ['/', '/demo', '/app', '/privacy', '/terms']) {
+    await page.goto(path);
+    await expect(page.locator('main')).toBeVisible();
+  }
+  const external = requests.filter(request => new URL(request.url).origin !== 'http://127.0.0.1:4173');
+  expect(external.map(request => request.url)).toEqual(['https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1']);
+  expect(requests.filter(request => request.method !== 'GET')).toEqual([]);
+  expect(await page.context().cookies()).toEqual([]);
+  const storageKeys = await page.evaluate(() => [...Object.keys(localStorage), ...Object.keys(sessionStorage)]);
+  expect(storageKeys.some(key => /analytics|advert|track/i.test(key))).toBe(false);
+});
+
 test('@claim:offline-reload demo works after the connection is removed', async ({ page, context }) => {
   await page.goto('/demo');
   await page.evaluate(async () => {
@@ -63,7 +95,7 @@ test('@claim:offline-reload demo works after the connection is removed', async (
   await page.reload();
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Review your entity index' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Review names found in your manuscript' })).toBeVisible();
   await expect(page.getByRole('option', { name: /林梅/ })).toBeVisible();
 });
 
@@ -84,6 +116,7 @@ test('@claim:alias-review aliases can be found, renamed, classified, merged and 
   await page.goto('/demo');
   await page.getByRole('option', { name: /Mara Venn/ }).click();
   await expect(page.getByText('Suggested alias', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/Both names include “Venn”\./)).toBeVisible();
   await page.getByRole('button', { name: 'Merge as alias' }).first().click();
   await expect(page.getByText(/Also: Captain Venn/)).toBeVisible();
   await page.getByRole('button', { name: 'Undo' }).click();
@@ -210,7 +243,24 @@ test('@claim:owner-license a checkout-return license is verified immediately and
   }
 });
 
-test('@claim:billing-privacy license checks send only the token and checkout stays with Sociobot', async ({ page }) => {
+test('@claim:refund-revocation a recorded refunded license response removes owner access', async ({ page }) => {
+  await page.route('https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/verify?license=refunded-owner', route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ valid: false, reason: 'revoked', expires_at: null })
+  }));
+  await page.goto('/app?license=refunded-owner');
+  await expect(page.getByRole('heading', { name: 'License no longer active' })).toBeVisible();
+  const folder = await mkdtemp(join(tmpdir(), 'mei-refund-'));
+  try {
+    await Promise.all([1, 2, 3, 4].map(number => writeFile(join(folder, `chapter-${number}.md`), `Mara Venn entered Glass Harbor in chapter ${number}.`)));
+    await page.locator('#folder-input').setInputFiles(folder);
+    await expect(page.getByText(/Indexed the first three files in path order/)).toBeVisible();
+    await expect(page.getByText(/· 3 files/)).toBeVisible();
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
+});
+
+test('@claim:billing-privacy license checks send only the token and the purchase link discloses the Dodo checkout redirect', async ({ page, request }) => {
   let requestEvidence: { method: string; url: string; body: string | null } | undefined;
   await page.route('https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/verify?license=private-token', async route => {
     const request = route.request();
@@ -228,12 +278,16 @@ test('@claim:billing-privacy license checks send only the token and checkout sta
   });
   await expect(page.locator('input[type="email"], input[autocomplete="cc-number"], input[name*="card" i]')).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Buy for $24' })).toHaveAttribute('href', /^https:\/\/api\.sociobot\.in\//);
+  const checkout = await request.get('https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/checkout', { maxRedirects: 1 });
+  expect(checkout.url()).toMatch(/^https:\/\/checkout\.dodopayments\.com\/session\//);
 });
 
-test('@claim:checkout-available the live purchase link starts hosted checkout', async ({ request }) => {
+test('@claim:checkout-available the live purchase link starts at Sociobot and opens Dodo checkout', async ({ request }) => {
   const response = await request.get('https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/checkout', { maxRedirects: 0 });
   expect(response.status()).toBe(303);
   expect(response.headers().location).toMatch(/^https:\/\/checkout\.dodopayments\.com\/session\//);
+  const redirected = await request.get('https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/checkout', { maxRedirects: 1 });
+  expect(redirected.url()).toMatch(/^https:\/\/checkout\.dodopayments\.com\/session\//);
 });
 
 test('@claim:platform-download selects current macOS, Windows and Linux installers', async ({ browser }) => {
@@ -263,6 +317,18 @@ test('@claim:platform-download selects current macOS, Windows and Linux installe
   }
 });
 
+test('@claim:release-workflow builds the stated desktop matrix and publishes checksum and manifest assets', async () => {
+  const workflow = await readFile(join(process.cwd(), '.github/workflows/release.yml'), 'utf8');
+  const manifestScript = await readFile(join(process.cwd(), 'scripts/release-manifest.py'), 'utf8');
+  expect(workflow).toContain("tags: ['v*']");
+  expect(workflow).toContain('macos-latest');
+  expect(workflow).toContain('windows-latest');
+  expect(workflow).toContain('ubuntu-latest');
+  expect(workflow).toContain('release-assets/SHA256SUMS');
+  expect(workflow).toContain('release-assets/latest.json');
+  expect(manifestScript).toContain('latest.json');
+});
+
 test('@regression an online reload replaces a stale cached shell and keeps the repaired shell offline', async ({ page, context }) => {
   await page.goto('/');
   await page.evaluate(async () => {
@@ -272,11 +338,11 @@ test('@regression an online reload replaces a stale cached shell and keeps the r
     await cache.put('/', new Response('<!doctype html><title>stale</title><p>STALE SHELL SENTINEL</p>', { headers: { 'Content-Type': 'text/html' } }));
   });
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Index every name across your manuscript' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Review names found across your manuscript' })).toBeVisible();
   await expect(page.getByText('STALE SHELL SENTINEL')).toHaveCount(0);
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Index every name across your manuscript' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Review names found across your manuscript' })).toBeVisible();
 });
 
 test('@regression landing startup excludes the workbench and stays below 10 KB of JavaScript', async ({ page }) => {
@@ -286,7 +352,7 @@ test('@regression landing startup excludes the workbench and stays below 10 KB o
     body: JSON.stringify([{ tag_name: 'v0.1.2', assets: [] }])
   }));
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Index every name across your manuscript' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Review names found across your manuscript' })).toBeVisible();
   await page.waitForLoadState('networkidle');
   const scripts = await page.evaluate(() => performance.getEntriesByType('resource')
     .filter(entry => entry.name.endsWith('.js'))
@@ -360,6 +426,7 @@ test('@a11y mobile workbench fits 390px and exposes its views', async ({ page })
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/demo');
   await expect(page.getByRole('tab', { name: 'Entities' })).toBeVisible();
+  await expect(page.getByLabel('Main navigation').getByRole('link', { name: 'Privacy' })).toBeVisible();
   await page.getByRole('option', { name: /Mara Venn/ }).click();
   await expect(page.getByRole('heading', { name: 'Evidence' })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
@@ -375,6 +442,14 @@ test('@a11y mobile workbench fits 390px and exposes its views', async ({ page })
     .filter(element => Number.parseFloat(getComputedStyle(element).fontSize) < 16)
     .map(element => ({ text: (element.textContent ?? '').trim(), size: getComputedStyle(element).fontSize })));
   expect(undersizedText).toEqual([]);
+});
+
+test('@regression all three first-screen facts fit in a 1440 by 900 desktop viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  const bottoms = await page.locator('.plain-facts li').evaluateAll(items => items.map(item => item.getBoundingClientRect().bottom));
+  expect(bottoms).toHaveLength(3);
+  expect(Math.max(...bottoms)).toBeLessThanOrEqual(900);
 });
 
 test('@a11y keyboard shortcuts, entity arrows and the chapter dialog remain operable', async ({ page }) => {
@@ -441,4 +516,6 @@ test('@a11y demo focus and mobile tabs keep a visible keyboard path', async ({ p
   await expect(page.getByRole('tab', { name: 'Evidence' })).toBeFocused();
   await expect(page.getByRole('tab', { name: 'Evidence' })).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('tabpanel', { name: 'Evidence' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Ledger' }).click();
+  await expect(page.getByLabel('Display name')).toBeVisible();
 });
