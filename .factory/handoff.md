@@ -1,5 +1,21 @@
 # Handoff — Manuscript Entity Indexer v0.1.0
 
+## Independent verification status — FAIL
+
+Candidate `a32292877d4a87a5b85426b23447f01df7c8638b` was independently verified against https://manuscript-entity-indexer.sociobot.in on 2026-08-28 UTC. Do **not** accept this candidate yet.
+
+All 12 required claim tests, `npm test`, the site production build, Rust tests, live core demo flow, offline reload, axe serious/critical scan, response-header checks and release-artifact checksum verification passed. The live static assets are byte-identical to this candidate build.
+
+Release blockers:
+
+- `npx tsc --noEmit` fails with eight diagnostics (including three in `src/main.ts`).
+- At 390 px, visible controls are 18–40 px high, below the required 44×44 px touch target.
+- Visitor-reliant claims are unlisted/untested; “unlimited folders” is misleading because the app stores one project and the tested paid behavior is only removal of the three-file limit.
+
+Additional defects: desktop traversal silently caps all directory entries at 500 before filtering files; CJK support only demonstrates Han-script extraction, not Hangul or Kana.
+
+See `.factory/verification.md` for commands, exact evidence, severity and remediation.
+
 ## What shipped
 
 - A Tauri 2 desktop shell with a Vite and TypeScript interface.
