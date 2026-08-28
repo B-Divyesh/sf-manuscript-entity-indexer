@@ -1,4 +1,4 @@
-import { indexDocuments, mergeEntities } from './indexer';
+import { ignoreEntity, indexDocuments, mergeEntities } from './indexer';
 import { sampleDocuments } from './sample';
 import { clearDemoProject, clearProject, downloadText, loadProject, saveProject } from './storage';
 import type { EntityKind, ManuscriptDocument, Project } from './types';
@@ -82,10 +82,10 @@ function landing(): string {
     </section>
 
     <section class="preview-section" aria-labelledby="preview-heading">
-      <div class="section-kicker"><span>Sample entity index</span><span>Sample output</span></div>
+      <div class="section-kicker"><span>Sample name index</span><span>Sample output</span></div>
       <h2 id="preview-heading">Review each detected mention before you merge names</h2>
       <div class="paper-preview">
-        <div class="preview-list" aria-label="Sample entity list">
+        <div class="preview-list" aria-label="Sample name list">
           <p class="utility-label" data-preview-entity-count>Names · ${samplePreview.entities.length}</p>
           <p class="preview-active" data-preview-entity="Mara Venn"><strong>Mara Venn</strong><span>${sampleMentionCount('Mara Venn')} mentions</span></p>
           <p data-preview-entity="Captain Venn"><strong>Captain Venn</strong><span>${sampleMentionCount('Captain Venn')} mentions</span></p>
@@ -96,12 +96,12 @@ function landing(): string {
           <blockquote>At dusk, <mark>Mara Venn</mark> stepped off the ferry at Glass Harbor.</blockquote>
           <p class="suggestion"><span>Suggested alias</span> Captain Venn · Both names include “Venn”.</p>
         </article>
-        <aside class="preview-ledger">
+        <div class="preview-ledger">
           <p class="utility-label">Ledger</p>
           <p><span>Type</span><strong>Person</strong></p>
           <p><span>Aliases</span><strong>1 to review</strong></p>
           <p><span>Chapters</span><strong>3</strong></p>
-        </aside>
+        </div>
       </div>
     </section>
 
@@ -109,7 +109,7 @@ function landing(): string {
       <div class="section-kicker"><span>Sample project</span><span>Three views</span></div>
       <h2 id="walkthrough-heading">Follow a name back to its chapter</h2>
       <div class="walkthrough-grid">
-        <figure><img src="/walkthrough/index.webp" width="900" height="1563" loading="lazy" decoding="async" alt="The sample workbench lists entities beside their manuscript evidence and ledger."><figcaption><span>01</span>Start with extracted names and the lines where they appear.</figcaption></figure>
+        <figure><img src="/walkthrough/index.webp" width="900" height="1563" loading="lazy" decoding="async" alt="The sample workbench lists names beside their manuscript evidence and ledger."><figcaption><span>01</span>Start with extracted names and the lines where they appear.</figcaption></figure>
         <figure><img src="/walkthrough/alias.webp" width="900" height="1563" loading="lazy" decoding="async" alt="The workbench shows Captain Venn merged into Mara Venn as an alias."><figcaption><span>02</span>Merge a suggested alias only after checking its evidence.</figcaption></figure>
         <figure><img src="/walkthrough/source.webp" width="760" height="450" loading="lazy" decoding="async" alt="A chapter copy opens above the workbench for source checking."><figcaption><span>03</span>Open the chapter copy without changing the source file.</figcaption></figure>
       </div>
@@ -121,20 +121,20 @@ function landing(): string {
       <ol class="editorial-steps">
         <li><span>1</span><div><h3>Choose your manuscript folder</h3><p>Open Markdown, text and DOCX chapters. Source files stay unchanged.</p></div></li>
         <li><span>2</span><div><h3>Review marked names</h3><p>Review names in Latin, Chinese, Japanese and Korean text. Accept or reject each alias suggestion.</p></div></li>
-        <li><span>3</span><div><h3>Check story continuity</h3><p>Search evidence by chapter. Add timeline notes and export the ledger.</p></div></li>
+        <li><span>3</span><div><h3>Check story continuity</h3><p>Search names, chapter titles and excerpt text. Add timeline notes and export the ledger.</p></div></li>
       </ol>
     </section>
 
     <section class="privacy-section" aria-labelledby="boundaries-heading">
       <div><p class="eyebrow">Draft privacy</p><h2 id="boundaries-heading">What never happens to your draft</h2></div>
       <ul><li>No manuscript upload.</li><li>No source-file changes.</li></ul>
-      <p>The index uses small, visible rules. You decide which names belong together.</p>
+      <p>The app only suggests matches. You decide which names belong together.</p>
     </section>
 
     <section class="price-section" aria-labelledby="price-heading">
       <div><p class="eyebrow">Owner edition</p><h2 id="price-heading">Index folders with more than three files</h2><p>Free indexes three files at a time. The owner edition removes that limit.</p></div>
       <div class="price-ticket"><p><span class="price">$24</span> one time</p><a class="button button-primary" href="${checkoutUrl}">Buy the owner edition</a><p>The purchase link starts at Sociobot, then opens Dodo’s hosted checkout. This app never receives card details.</p></div>
-      <div class="download-block" id="download-block"><p class="utility-label">Desktop app · unsigned preview</p><a class="button button-ink" href="https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases">Downloads are being published</a><p>macOS, Windows and Linux builds appear on the release page.</p></div>
+      <div class="download-block" id="download-block"><p class="utility-label">Desktop app</p><a class="button button-ink" href="https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases">Downloads are being published</a><p>Choose a desktop installer on the release page.</p></div>
     </section>
   </main>${footer()}`;
 }
@@ -171,19 +171,19 @@ function projectWorkbench(isDemo: boolean): string {
   if (selected && !selectedEntityId) selectedEntityId = selected.id;
   const query = search.trim().toLocaleLowerCase();
   const visibleEntities = project.entities.filter(entity => !query || [entity.name, ...entity.aliases].some(value => value.toLocaleLowerCase().includes(query))
-    || project!.mentions.some(mention => mention.entityId === entity.id && mention.excerpt.toLocaleLowerCase().includes(query)));
+    || project!.mentions.some(mention => mention.entityId === entity.id && (mention.excerpt.toLocaleLowerCase().includes(query) || mention.documentTitle.toLocaleLowerCase().includes(query))));
   const mentions = selected ? project.mentions.filter(mention => mention.entityId === selected.id) : [];
   const suggestions = selected ? project.suggestions.filter(suggestion => suggestion.sourceId === selected.id || suggestion.targetId === selected.id) : [];
   return `${isDemo ? demoBanner() : ''}${header()}<main id="main" class="workbench-main">
     <div class="workbench-head">
       <div><p class="eyebrow">${escapeHtml(project.name)} · ${project.documents.length} files</p><h1 tabindex="-1">Review names found in your manuscript</h1></div>
-      <div class="workbench-actions"><label class="search-label" for="index-search"><span>Search mentions</span><input id="index-search" type="search" value="${escapeHtml(search)}" placeholder="Name, place or phrase" autocomplete="off"></label><button type="button" data-action="export-csv">Export CSV</button><button type="button" data-action="choose-folder">Index another folder</button>${!isDemo ? '<button type="button" class="clear-index" data-action="clear-project">Clear local index</button>' : ''}</div>
+      <div class="workbench-actions"><label class="search-label" for="index-search"><span>Search names and chapters</span><input id="index-search" type="search" value="${escapeHtml(search)}" placeholder="Name, chapter or phrase" autocomplete="off"></label><button type="button" data-action="export-csv">Export CSV</button><button type="button" data-action="choose-folder">Index another folder</button>${!isDemo ? '<button type="button" class="clear-index" data-action="clear-project">Clear local index</button>' : ''}</div>
       <input id="folder-input" class="visually-hidden-input" type="file" accept=".md,.markdown,.txt,.docx" multiple webkitdirectory aria-label="Choose manuscript files">
     </div>
     ${notice ? `<p class="notice" role="status">${escapeHtml(notice)}${undoSnapshot ? ' <button type="button" data-action="undo">Undo</button>' : ''}</p>` : ''}
     ${errorBanner()}
     <div class="mobile-tabs" role="tablist" aria-label="Workbench views">
-      ${(['entities', 'evidence', 'timeline'] as const).map(view => `<button id="${view}-tab" role="tab" aria-selected="${activeView === view}" aria-controls="${view}-panel" tabindex="${activeView === view ? '0' : '-1'}" data-view="${view}">${view === 'timeline' ? 'Ledger' : view[0].toUpperCase() + view.slice(1)}</button>`).join('')}
+      ${(['entities', 'evidence', 'timeline'] as const).map(view => `<button id="${view}-tab" role="tab" aria-selected="${activeView === view}" aria-controls="${view}-panel" tabindex="${activeView === view ? '0' : '-1'}" data-view="${view}">${view === 'entities' ? 'Names' : view === 'timeline' ? 'Ledger' : 'Evidence'}</button>`).join('')}
     </div>
     <div class="workbench-grid">
       <section id="entities-panel" role="tabpanel" aria-labelledby="entities-tab" class="entity-rail ${activeView !== 'entities' ? 'mobile-hidden' : ''}">
@@ -198,13 +198,13 @@ function projectWorkbench(isDemo: boolean): string {
           const other = project!.entities.find(entity => entity.id === otherId);
           return other ? `<aside class="alias-suggestion"><p><strong>Suggested alias</strong></p><p><span>${escapeHtml(other.name)}</span> ${escapeHtml(suggestion.reason)}</p><div><button type="button" data-merge="${other.id}">Merge as alias</button><button type="button" data-reject="${suggestion.id}">Keep separate</button></div></aside>` : '';
         }).join('')}
-        <ol class="mention-list">${mentions.map((mention, index) => `<li id="mention-${mention.id}"><button type="button" class="chapter-link" data-doc="${mention.documentId}">${String(index + 1).padStart(2, '0')} · ${escapeHtml(mention.documentTitle)}</button><blockquote>${highlight(mention.excerpt, mention.matchedText)}</blockquote></li>`).join('')}</ol>` : '<div class="panel-empty"><p>No entity is selected.</p><p>Choose a name from the entity list.</p></div>'}
+        <ol class="mention-list">${mentions.map((mention, index) => `<li id="mention-${mention.id}"><button type="button" class="chapter-link" data-doc="${mention.documentId}">${String(index + 1).padStart(2, '0')} · ${escapeHtml(mention.documentTitle)}</button><blockquote>${highlight(mention.excerpt, mention.matchedText)}</blockquote></li>`).join('')}</ol>` : '<div class="panel-empty"><p>No name is selected.</p><p>Choose a name from the name list.</p></div>'}
       </section>
-      <aside id="timeline-panel" role="tabpanel" aria-labelledby="timeline-tab" class="ledger-panel ${activeView !== 'timeline' ? 'mobile-hidden' : ''}">
+      <div id="timeline-panel" role="tabpanel" aria-labelledby="timeline-tab" class="ledger-panel ${activeView !== 'timeline' ? 'mobile-hidden' : ''}">
         <div class="panel-heading"><h2 id="ledger-heading">Ledger</h2><span>Author reviewed</span></div>
-        ${selected ? `<form id="entity-form" class="entity-form"><label for="entity-name">Display name</label><input id="entity-name" name="name" value="${escapeHtml(selected.name)}" required><label for="entity-kind">Type</label><select id="entity-kind" name="kind"><option value="person" ${selected.kind === 'person' ? 'selected' : ''}>Person</option><option value="place" ${selected.kind === 'place' ? 'selected' : ''}>Place</option><option value="other" ${selected.kind === 'other' ? 'selected' : ''}>Other</option></select><button type="submit">Save entity</button></form>` : ''}
+        ${selected ? `<form id="entity-form" class="entity-form"><label for="entity-name">Display name</label><input id="entity-name" name="name" value="${escapeHtml(selected.name)}" required><label for="entity-kind">Type</label><select id="entity-kind" name="kind"><option value="person" ${selected.kind === 'person' ? 'selected' : ''}>Person</option><option value="place" ${selected.kind === 'place' ? 'selected' : ''}>Place</option><option value="other" ${selected.kind === 'other' ? 'selected' : ''}>Other</option></select><button type="submit">Save name</button><button type="button" class="text-button" data-action="ignore-name">Ignore this name</button></form>` : ''}
         <section class="timeline-block" aria-labelledby="timeline-heading"><h3 id="timeline-heading">Timeline</h3>${selected ? `<ol>${project.timeline.filter(entry => entry.entityIds.includes(selected.id)).map(entry => `<li><span>${escapeHtml(entry.marker)}</span><p>${escapeHtml(entry.note)}</p><small>${escapeHtml(entry.documentTitle)}${entry.manual ? ' · your note' : ' · found marker'}</small></li>`).join('') || '<li class="timeline-empty">No time markers for this entity yet.</li>'}</ol><form id="timeline-form"><label for="timeline-note">Add continuity note</label><textarea id="timeline-note" name="note" rows="3" required></textarea><button type="submit">Add timeline note</button></form>` : ''}</section>
-      </aside>
+      </div>
     </div>
     ${!isDemo ? licensePanel() : ''}
     ${documentDialog()}
@@ -228,7 +228,7 @@ function privacyPage(): string {
 }
 
 function termsPage(): string {
-  return `${header()}<main id="main" class="legal-main"><p class="eyebrow">Terms · 28 August 2026</p><h1 tabindex="-1">Use the index as an editing aid</h1><p class="legal-dek">These terms cover Manuscript Entity Indexer and its one-time owner license.</p><section><h2>Your files and decisions</h2><p>You keep all rights to your manuscript. Extraction and alias results are heuristic suggestions. Review them before relying on the ledger.</p></section><section><h2>License</h2><p>The free edition indexes three files at a time. A valid owner license removes that file limit.</p></section><section><h2>Refunds and availability</h2><p>Approved refunds revoke the license. The software is provided as available without a promise that every name will be found.</p></section><section><h2>Acceptable use</h2><p>Use the app only with files you may access. Do not bypass license checks or redistribute paid builds.</p></section><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>${footer()}`;
+  return `${header()}<main id="main" class="legal-main"><p class="eyebrow">Terms · 28 August 2026</p><h1 tabindex="-1">Use the index as an editing aid</h1><p class="legal-dek">These terms cover Manuscript Entity Indexer and its one-time owner license.</p><section><h2>Your files and decisions</h2><p>You keep all rights to your manuscript. Extraction and alias results are heuristic suggestions. Review them before relying on the ledger.</p></section><section><h2>License</h2><p>The free edition indexes three files at a time. A valid owner license removes that file limit.</p></section><section><h2>License status and availability</h2><p>A revoked license returns to the three-file limit. The software is provided as available without a promise that every name will be found.</p></section><section><h2>Acceptable use</h2><p>Use the app only with files you may access. Do not bypass license checks or redistribute paid builds.</p></section><p>Questions: <a href="mailto:support@sociobot.in">support@sociobot.in</a></p></main>${footer()}`;
 }
 
 function notFound(): string {
@@ -362,7 +362,7 @@ function exportCsv(): void {
   }
   const csv = rows.map(row => row.map(value => `"${value.replace(/"/g, '""')}"`).join(',')).join('\n');
   downloadText('manuscript-entity-index.csv', csv, 'text/csv;charset=utf-8');
-  notice = `Exported ${project.entities.length} entities as CSV.`;
+  notice = `Exported ${project.entities.length} names as CSV.`;
   render();
 }
 
@@ -423,7 +423,7 @@ function bindPage(): void {
     const selected = project.entities.find(entity => entity.id === selectedEntityId);
     const data = new FormData(event.currentTarget as HTMLFormElement);
     if (selected) { selected.name = String(data.get('name')).trim(); selected.kind = String(data.get('kind')) as EntityKind; }
-    notice = 'Saved the entity.'; saveCurrent(); render();
+    notice = 'Saved the name.'; saveCurrent(); render();
   });
   document.querySelector<HTMLFormElement>('#timeline-form')?.addEventListener('submit', event => {
     event.preventDefault();
@@ -458,6 +458,14 @@ function handleAction(action: string): void {
   if (action === 'export-csv') exportCsv();
   if (action === 'clear-search') { search = ''; render(); }
   if (action === 'undo' && undoSnapshot) { project = JSON.parse(undoSnapshot) as Project; undoSnapshot = ''; notice = 'Restored the separate names.'; saveCurrent(); render(); }
+  if (action === 'ignore-name' && project && selectedEntityId) {
+    const ignored = project.entities.find(entity => entity.id === selectedEntityId);
+    undoSnapshot = JSON.stringify(project);
+    project = ignoreEntity(project, selectedEntityId);
+    selectedEntityId = project.entities[0]?.id ?? '';
+    notice = ignored ? `Ignored ${ignored.name}.` : 'Ignored the name.';
+    saveCurrent(); render();
+  }
   if (action === 'remove-license') { removeLicense(); license = cachedLicenseState(); notice = 'Removed the license from this device.'; render(); }
   if (action === 'close-document') document.querySelector<HTMLDialogElement>('#document-dialog')?.close();
   if (action === 'clear-project' && confirm('Clear this local index? Your manuscript files will not change.')) {

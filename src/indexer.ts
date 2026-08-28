@@ -5,6 +5,9 @@ const STOPWORDS = new Set([
   'Next', 'North', 'Red', 'Blue', 'Markdown', 'DOCX', 'English'
 ]);
 const TITLES = new Set(['captain', 'doctor', 'dr', 'professor', 'mr', 'mrs', 'ms', 'sir', 'lady']);
+// Common Japanese nouns that can otherwise look like Han names before a particle.
+// This is deliberately a conservative precision guard, not a language classifier.
+const CJK_COMMON_NOUNS = new Set(['地図', '帳面', '時計', '鍵', '港', '文庫', '記録', '手紙', '本', '道']);
 const PLACE_WORDS = /(?:Harbor|Archive|Bridge|Street|Station|Island|Mountain|River|Palace|港|駅|市|街|島|山|河|橋|文庫)$/u;
 const TIME_MARKERS = /\b(?:at dusk|before dawn|next morning|after sunrise|three nights later|before midnight|that night)\b|(?:翌朝|夜明け|真夜中|三日後)/giu;
 
@@ -32,7 +35,7 @@ export function extractCandidates(document: ManuscriptDocument): Array<{ name: s
   const found = new Map<string, Set<number>>();
   const add = (name: string, position: number) => {
     const clean = name.replace(/[“”"'。、，,.!?;:]+$/u, '').trim();
-    if (clean.length < 2 || STOPWORDS.has(clean)) return;
+    if (clean.length < 2 || STOPWORDS.has(clean) || CJK_COMMON_NOUNS.has(clean)) return;
     const positions = found.get(clean) ?? new Set<number>();
     positions.add(position);
     found.set(clean, positions);
@@ -164,6 +167,15 @@ export function mergeEntities(project: Project, keepId: string, mergeId: string)
   });
   project.entities = project.entities.filter(entity => entity.id !== mergeId);
   project.suggestions = project.suggestions.filter(suggestion => ![keepId, mergeId].includes(suggestion.sourceId) || ![keepId, mergeId].includes(suggestion.targetId));
+  project.updatedAt = new Date().toISOString();
+  return project;
+}
+
+export function ignoreEntity(project: Project, entityId: string): Project {
+  project.entities = project.entities.filter(entity => entity.id !== entityId);
+  project.mentions = project.mentions.filter(mention => mention.entityId !== entityId);
+  project.suggestions = project.suggestions.filter(suggestion => suggestion.sourceId !== entityId && suggestion.targetId !== entityId);
+  project.timeline = project.timeline.map(entry => ({ ...entry, entityIds: entry.entityIds.filter(id => id !== entityId) }));
   project.updatedAt = new Date().toISOString();
   return project;
 }

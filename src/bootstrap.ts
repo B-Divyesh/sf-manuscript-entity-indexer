@@ -44,8 +44,8 @@ if (isStaticLanding) {
     workbench.navigate(destination);
   }));
   const scheduleDownload = (): void => {
-    if ('requestIdleCallback' in window) window.requestIdleCallback(() => void resolveCurrentDownload(), { timeout: 1_500 });
-    else setTimeout(() => void resolveCurrentDownload(), 0);
+    // The release block is a real first-screen action, so resolve it promptly.
+    setTimeout(() => void resolveCurrentDownload(), 0);
   };
   if (document.readyState === 'complete') scheduleDownload();
   else window.addEventListener('load', scheduleDownload, { once: true });

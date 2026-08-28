@@ -10,6 +10,29 @@ interface Release {
 
 const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]!);
 
+function desktopPlatform(): 'macOS' | 'Windows' | 'Linux' | null {
+  // `navigator.platform` is the stable desktop signal here. Chromium's
+  // userAgentData can describe the host in embedded test and desktop shells.
+  const platform = navigator.platform || navigator.userAgent;
+  if (/iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent)) return null;
+  if (/Mac/i.test(platform)) return 'macOS';
+  if (/Win/i.test(platform)) return 'Windows';
+  if (/Linux|X11/i.test(platform)) return 'Linux';
+  return null;
+}
+
+function platformLinks(release: Release): string {
+  const asset = (expression: RegExp) => release.assets.find(item => expression.test(item.name));
+  const choices = [
+    [asset(/aarch64.*\.dmg$/i), 'macOS Apple silicon'],
+    [asset(/x64.*\.dmg$/i), 'macOS Intel'],
+    [asset(/x64.*(?:setup\.exe|\.msi)$/i), 'Windows x64'],
+    [asset(/amd64.*\.AppImage$/i), 'Linux x64']
+  ].filter((choice): choice is [{ name: string; browser_download_url: string }, string] => Boolean(choice[0]))
+    .map(([item, label]) => `<a href="${escapeHtml(item.browser_download_url)}">${label}</a>`).join(' · ');
+  return choices || `<a href="${RELEASE_PAGE}">All desktop downloads</a>`;
+}
+
 export async function resolveCurrentDownload(): Promise<void> {
   const block = document.querySelector<HTMLElement>('#download-block');
   if (!block) return;
@@ -22,12 +45,12 @@ export async function resolveCurrentDownload(): Promise<void> {
       return releases[0];
     });
     if (!cached || cached.release.tag_name !== release.tag_name) localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), release }));
-    const platform = /Mac/i.test(navigator.platform) ? 'macOS' : /Win/i.test(navigator.platform) ? 'Windows' : 'Linux';
-    const matcher = platform === 'macOS' ? /\.(dmg|app\.tar\.gz)$/i : platform === 'Windows' ? /\.(msi|exe|zip)$/i : /\.(AppImage|deb)$/i;
-    const asset = release.assets.find(item => matcher.test(item.name));
-    if (!asset) throw new Error('Platform asset missing');
-    block.innerHTML = `<p class="utility-label">Desktop app · ${escapeHtml(release.tag_name)}</p><a class="button button-ink" href="${escapeHtml(asset.browser_download_url)}">Download for ${platform}</a><p>Unsigned build · ${escapeHtml(asset.name)} · <a href="${RELEASE_PAGE}">All downloads</a></p>`;
+    const platform = desktopPlatform();
+    const primary = platform
+      ? `<a class="button button-ink" href="${RELEASE_PAGE}">Choose a ${platform} installer</a>`
+      : `<a class="button button-ink" href="${RELEASE_PAGE}">View desktop downloads</a>`;
+    block.innerHTML = `<p class="utility-label">Desktop app · ${escapeHtml(release.tag_name)}</p>${primary}<p>${platformLinks(release)} · <a href="${RELEASE_PAGE}">All downloads</a></p>`;
   } catch {
-    block.innerHTML = `<p class="utility-label">Desktop app · release pending</p><a class="button button-ink" href="${RELEASE_PAGE}">Downloads are being published</a><p>Open the release page for macOS, Windows and Linux builds.</p>`;
+    block.innerHTML = `<p class="utility-label">Desktop app · release pending</p><a class="button button-ink" href="${RELEASE_PAGE}">View desktop downloads</a><p>Open the release page for macOS, Windows and Linux builds.</p>`;
   }
 }

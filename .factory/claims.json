@@ -4,21 +4,21 @@
     "claim": "The demo uses sample data and saves no edits.",
     "where": "landing action, demo banner, README",
     "test": "npm run test:claims -- --grep @claim:demo-isolation",
-    "sandbox": "fresh browser context; enter from landing, edit an entity, then reload"
+    "sandbox": "fresh browser context; enter from landing, edit a name, then reload"
   },
   {
     "id": "sample-preview",
-    "claim": "The landing sample preview reports the entity and mention counts produced by the bundled sample.",
+    "claim": "The landing sample preview reports the name and mention counts produced by the bundled sample.",
     "where": "landing sample output",
     "test": "npm run test:claims -- --grep @claim:sample-preview",
-    "sandbox": "fresh browser context; read the rendered landing counts, open the demo, and compare them with its rendered entity rows"
+    "sandbox": "fresh browser context; read the rendered landing counts, open the demo, and compare them with its rendered name rows"
   },
   {
     "id": "local-processing",
-    "claim": "Manuscript text stays on the device, and the demo sends no third-party requests.",
+    "claim": "Manuscript text stays on the device, and importing it sends no third-party requests.",
     "where": "landing facts, privacy page, README",
     "test": "npm run test:claims -- --grep @claim:local-processing",
-    "sandbox": "demo flow with every request observed; assert same-origin only"
+    "sandbox": "fresh browser context; import a chapter containing a unique sentinel while recording every request; assert same-origin only and no sentinel in request data"
   },
   {
     "id": "no-tracking",
@@ -36,21 +36,28 @@
   },
   {
     "id": "csv-export",
-    "claim": "Exports the entity ledger as CSV.",
+    "claim": "Exports the name ledger as CSV.",
     "where": "workbench toolbar, landing steps, README",
     "test": "npm run test:claims -- --grep @claim:csv-export",
-    "sandbox": "demo project; download CSV and assert its header and one row per entity"
+    "sandbox": "demo project; download CSV and assert its header and one row per name"
   },
   {
     "id": "alias-review",
-    "claim": "Authors can search, rename, classify, merge and undo suggested aliases, with the matching rule shown.",
+    "claim": "Authors can search, rename, classify, merge, reject and undo suggested aliases, with the matching rule shown.",
     "where": "landing preview, workbench, README",
     "test": "npm run test:claims -- --grep @claim:alias-review",
-    "sandbox": "demo project; merge and undo Captain Venn, then rename and classify Mara Venn and find the edit with search"
+    "sandbox": "demo project; merge, undo and reject Captain Venn, then rename and classify Mara Venn and find the edit with search"
+  },
+  {
+    "id": "chapter-search",
+    "claim": "Search finds names by chapter title as well as name and excerpt text.",
+    "where": "landing method, workbench search",
+    "test": "npm run test:claims -- --grep @claim:chapter-search",
+    "sandbox": "fresh browser context; import a chapter whose unique filename does not occur in its text, then search that title"
   },
   {
     "id": "timeline-ledger",
-    "claim": "Authors can add entity-linked continuity notes.",
+    "claim": "Authors can add name-linked continuity notes.",
     "where": "landing steps, workbench, README",
     "test": "npm run test:claims -- --grep @claim:timeline-ledger",
     "sandbox": "demo project; add a note to Mara Venn, assert it, then reset demo"
@@ -98,6 +105,13 @@
     "sandbox": "fresh browser context with a recorded valid verification response; return from checkout with a license query, assert immediate verification and import four files"
   },
   {
+    "id": "revoked-license",
+    "claim": "A revoked license returns to the three-file limit.",
+    "where": "terms",
+    "test": "npm run test:claims -- --grep @claim:revoked-license",
+    "sandbox": "fresh browser context with a recorded revoked-license response; import four files and assert only three are indexed"
+  },
+  {
     "id": "billing-privacy",
     "claim": "The purchase link starts at Sociobot, then opens Dodo's hosted checkout; license checks send only the token and no card details enter this app.",
     "where": "privacy page, pricing, README",
@@ -113,17 +127,10 @@
   },
   {
     "id": "platform-download",
-    "claim": "The landing page selects current macOS, Windows and Linux desktop installers.",
+    "claim": "The landing page shows exact macOS, Windows and Linux desktop installer choices and never offers a mobile download.",
     "where": "landing download block, README",
     "test": "npm run test:claims -- --grep @claim:platform-download",
-    "sandbox": "three fresh browser contexts with recorded GitHub release metadata; assert each detected platform links to its matching release asset"
-  },
-  {
-    "id": "refund-revocation",
-    "claim": "Approved refunds revoke the owner license.",
-    "where": "terms",
-    "test": "npm run test:claims -- --grep @claim:refund-revocation",
-    "sandbox": "fresh browser context with a recorded refunded-license response; assert paid access is removed"
+    "sandbox": "fresh desktop and mobile browser contexts with recorded release metadata; assert each architecture-labelled link targets its exact asset and mobile opens the desktop download page"
   },
   {
     "id": "release-workflow",

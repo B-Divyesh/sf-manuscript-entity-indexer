@@ -17,7 +17,7 @@ and disappear on reload.
 - Shows detected mentions beside their chapter copy.
 - Suggests possible aliases and shows the matching rule.
 - Lets the author merge, rename, classify, search and undo alias changes.
-- Adds entity-linked continuity notes and exports the ledger as CSV.
+- Adds name-linked continuity notes and exports the ledger as CSV.
 - Stores a real web index in local browser storage until the author clears it.
 - Works after the first web visit without internet.
 
@@ -64,8 +64,8 @@ local platform package with `npm run tauri build`.
 ## Desktop releases
 
 The release workflow builds macOS, Windows and Linux installers, plus
-`SHA256SUMS` and `latest.json`. The landing page selects an installer for the
-current platform.
+`SHA256SUMS` and `latest.json`. The landing page lists exact desktop installer
+choices and sends phone visitors to the desktop download page.
 
 ## Project notes
 

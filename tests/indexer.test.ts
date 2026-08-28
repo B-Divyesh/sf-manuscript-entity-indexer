@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractCandidates, indexDocuments, mergeEntities } from '../src/indexer';
+import { extractCandidates, ignoreEntity, indexDocuments, mergeEntities } from '../src/indexer';
 import { sampleDocuments } from '../src/sample';
 
 describe('lightweight manuscript indexer', () => {
@@ -33,6 +33,14 @@ describe('lightweight manuscript indexer', () => {
     expect(project.entities.find(entity => entity.name === '민서')?.kind).toBe('person');
   });
 
+  it('does not turn common Japanese nouns before particles into people', () => {
+    const document = { id: 'precision', title: 'Precision', path: 'precision.md', text: '白港の地図には印がある。林梅が北文庫で帳面を開いた。' };
+    const candidates = extractCandidates(document).map(candidate => candidate.name);
+    expect(candidates).not.toContain('地図');
+    expect(candidates).not.toContain('帳面');
+    expect(candidates).toContain('林梅');
+  });
+
   it('normalizes Unicode without changing source text', () => {
     const document = { id: 'u', title: 'Unicode', path: 'u.md', text: 'Ａｎａ Vale met Ana Vale at River Station.' };
     const source = document.text;
@@ -50,5 +58,14 @@ describe('lightweight manuscript indexer', () => {
     expect(merged.entities.some(entity => entity.id === captain.id)).toBe(false);
     expect(mara.aliases).toContain('Captain Venn');
     expect(merged.mentions.every(mention => mention.entityId !== captain.id)).toBe(true);
+  });
+
+  it('ignores a name and removes its mentions and suggestions', () => {
+    const project = indexDocuments('Sample', structuredClone(sampleDocuments));
+    const captain = project.entities.find(entity => entity.name === 'Captain Venn')!;
+    const ignored = ignoreEntity(project, captain.id);
+    expect(ignored.entities.some(entity => entity.id === captain.id)).toBe(false);
+    expect(ignored.mentions.some(mention => mention.entityId === captain.id)).toBe(false);
+    expect(ignored.suggestions.some(suggestion => suggestion.sourceId === captain.id || suggestion.targetId === captain.id)).toBe(false);
   });
 });

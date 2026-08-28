@@ -13,7 +13,7 @@ test('@claim:demo-isolation demo loads complete sample data and does not persist
   await expect(page.getByRole('heading', { name: 'Review names found in your manuscript' })).toBeVisible();
   await page.getByRole('option', { name: /Mara Venn/ }).click();
   await page.getByLabel('Display name').fill('Mara Venn Edited');
-  await page.getByRole('button', { name: 'Save entity' }).click();
+  await page.getByRole('button', { name: 'Save name' }).click();
   await page.reload();
   await expect(page.getByRole('option', { name: /Mara Venn/ })).toBeVisible();
   await expect(page.getByText('Mara Venn Edited')).toHaveCount(0);
@@ -56,16 +56,22 @@ test('@regression ?demo=1 opens the isolated sample with its banner and reset co
   await expect(page.evaluate(() => sessionStorage.getItem('demo:mei:project:v1'))).resolves.toBeNull();
 });
 
-test('@claim:local-processing demo indexing makes no cross-origin requests', async ({ page }) => {
-  const external: string[] = [];
-  page.on('request', request => {
-    const url = new URL(request.url());
-    if (url.origin !== 'http://127.0.0.1:4173') external.push(url.href);
-  });
-  await page.goto('/demo');
-  await page.getByRole('option', { name: /Mara Venn/ }).click();
-  await page.getByRole('button', { name: 'Merge as alias' }).first().click();
-  expect(external).toEqual([]);
+test('@claim:local-processing importing a manuscript keeps its text on-device', async ({ page }) => {
+  const requests: Array<{ url: string; method: string; body: string | null }> = [];
+  page.on('request', request => requests.push({ url: request.url(), method: request.method(), body: request.postData() }));
+  await page.goto('/app');
+  const folder = await mkdtemp(join(tmpdir(), 'mei-private-import-'));
+  const sentinel = 'PRIVATE-MANUSCRIPT-SENTINEL-7f3c9';
+  try {
+    await writeFile(join(folder, 'private-chapter.md'), `${sentinel} Mara Venn entered Glass Harbor.`);
+    await page.locator('#folder-input').setInputFiles(folder);
+    await expect(page.getByRole('option', { name: /Mara Venn/ })).toBeVisible();
+    const external = requests.filter(request => new URL(request.url).origin !== 'http://127.0.0.1:4173');
+    expect(external).toEqual([]);
+    expect(requests.some(request => `${request.url}\n${request.body ?? ''}`.includes(sentinel))).toBe(false);
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
 });
 
 test('@claim:no-tracking all first-party routes make no analytics, advertising, manuscript upload, or cloud-storage requests', async ({ page }) => {
@@ -121,12 +127,45 @@ test('@claim:alias-review aliases can be found, renamed, classified, merged and 
   await expect(page.getByText(/Also: Captain Venn/)).toBeVisible();
   await page.getByRole('button', { name: 'Undo' }).click();
   await expect(page.getByRole('option', { name: /Captain Venn/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Keep separate' }).first().click();
+  await expect(page.getByText('Kept the two names separate.')).toBeVisible();
+  await expect(page.getByText('Suggested alias', { exact: true })).toHaveCount(0);
   await page.getByLabel('Display name').fill('Mara Vale');
   await page.getByLabel('Type').selectOption('place');
-  await page.getByRole('button', { name: 'Save entity' }).click();
-  await page.getByLabel('Search mentions').fill('Mara Vale');
+  await page.getByRole('button', { name: 'Save name' }).click();
+  await page.getByLabel('Search names and chapters').fill('Mara Vale');
   await expect(page.getByRole('option', { name: /Mara Vale.*place/ })).toBeVisible();
   await expect(page.getByRole('option', { name: /Captain Venn/ })).toHaveCount(0);
+});
+
+test('@claim:chapter-search finds a name by a chapter title absent from the chapter text', async ({ page }) => {
+  await page.goto('/app');
+  const folder = await mkdtemp(join(tmpdir(), 'mei-chapter-search-'));
+  try {
+    await writeFile(join(folder, 'Unique-Chapter-Z.md'), 'Mara Venn entered Glass Harbor.');
+    await page.locator('#folder-input').setInputFiles(folder);
+    await page.getByLabel('Search names and chapters').fill('Unique-Chapter-Z');
+    await expect(page.getByRole('option', { name: /Mara Venn/ })).toBeVisible();
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
+});
+
+test('@regression an author can ignore a mistaken name and keep that decision after reload', async ({ page }) => {
+  await page.goto('/app');
+  const folder = await mkdtemp(join(tmpdir(), 'mei-ignore-name-'));
+  try {
+    await writeFile(join(folder, 'chapter.md'), 'Mara Venn entered Glass Harbor.');
+    await page.locator('#folder-input').setInputFiles(folder);
+    await page.getByRole('option', { name: /Mara Venn/ }).click();
+    await page.getByRole('button', { name: 'Ignore this name' }).click();
+    await expect(page.getByText('Ignored Mara Venn.')).toBeVisible();
+    await expect(page.getByRole('option', { name: /Mara Venn/ })).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole('option', { name: /Mara Venn/ })).toHaveCount(0);
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
 });
 
 test('@claim:timeline-ledger timeline notes stay linked to the selected entity', async ({ page }) => {
@@ -243,7 +282,7 @@ test('@claim:owner-license a checkout-return license is verified immediately and
   }
 });
 
-test('@claim:refund-revocation a recorded refunded license response removes owner access', async ({ page }) => {
+test('@claim:revoked-license a revoked license returns to the free three-file limit', async ({ page }) => {
   await page.route('https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/verify?license=refunded-owner', route => route.fulfill({
     status: 200, contentType: 'application/json', body: JSON.stringify({ valid: false, reason: 'revoked', expires_at: null })
   }));
@@ -290,19 +329,24 @@ test('@claim:checkout-available the live purchase link starts at Sociobot and op
   expect(redirected.url()).toMatch(/^https:\/\/checkout\.dodopayments\.com\/session\//);
 });
 
-test('@claim:platform-download selects current macOS, Windows and Linux installers', async ({ browser }) => {
+test('@claim:platform-download shows exact desktop choices and keeps mobile downloads on the release page', async ({ browser }) => {
   const assets = [
     'Manuscript.Entity.Indexer_0.1.5_aarch64.dmg',
+    'Manuscript.Entity.Indexer_0.1.5_x64.dmg',
     'Manuscript.Entity.Indexer_0.1.5_x64-setup.exe',
     'Manuscript.Entity.Indexer_0.1.5_amd64.AppImage'
   ].map(name => ({ name, browser_download_url: `https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.5/${name}` }));
-  for (const [platformValue, label, suffix] of [
-    ['MacIntel', 'macOS', '.dmg'],
-    ['Win32', 'Windows', '.exe'],
-    ['Linux x86_64', 'Linux', '.AppImage']
+  for (const [platformValue, userAgent, primary] of [
+    ['MacIntel', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)', 'Choose a macOS installer'],
+    ['Win32', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'Choose a Windows installer'],
+    ['Linux x86_64', 'Mozilla/5.0 (X11; Linux x86_64)', 'Choose a Linux installer'],
+    ['iPhone', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile', 'View desktop downloads']
   ]) {
     const context = await browser.newContext();
-    await context.addInitScript(value => Object.defineProperty(navigator, 'platform', { configurable: true, get: () => value }), platformValue);
+    await context.addInitScript(([value, ua]) => {
+      Object.defineProperty(navigator, 'platform', { configurable: true, get: () => value });
+      Object.defineProperty(navigator, 'userAgent', { configurable: true, get: () => ua });
+    }, [platformValue, userAgent]);
     const page = await context.newPage();
     await page.route('https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1', route => route.fulfill({
       status: 200,
@@ -310,9 +354,13 @@ test('@claim:platform-download selects current macOS, Windows and Linux installe
       body: JSON.stringify([{ tag_name: 'v0.1.5', assets }])
     }));
     await page.goto('/');
-    const download = page.getByRole('link', { name: `Download for ${label}` });
-    await expect(download).toBeVisible();
-    await expect(download).toHaveAttribute('href', new RegExp(`${suffix.replace('.', '\\.')}\$`));
+    await expect(page.getByRole('link', { name: primary })).toBeVisible();
+    if (platformValue !== 'iPhone') {
+      await expect(page.getByRole('link', { name: 'macOS Apple silicon' })).toHaveAttribute('href', /aarch64\.dmg$/);
+      await expect(page.getByRole('link', { name: 'macOS Intel' })).toHaveAttribute('href', /x64\.dmg$/);
+      await expect(page.getByRole('link', { name: 'Windows x64' })).toHaveAttribute('href', /x64-setup\.exe$/);
+      await expect(page.getByRole('link', { name: 'Linux x64' })).toHaveAttribute('href', /amd64\.AppImage$/);
+    }
     await context.close();
   }
 });
@@ -408,7 +456,7 @@ test('@regression import and license failures are announced and a later import r
   }
 });
 
-test('@a11y main routes have no serious accessibility violations', async ({ page }) => {
+test('@a11y main routes have no accessibility violations', async ({ page }) => {
   const errors: string[] = [];
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   page.on('pageerror', exception => errors.push(exception.message));
@@ -417,7 +465,7 @@ test('@a11y main routes have no serious accessibility violations', async ({ page
     await expect(page.locator('main')).toHaveCount(1);
     await expect(page.locator('h1')).toHaveCount(1);
     const results = await new AxeBuilder({ page: page as never }).analyze();
-    expect(results.violations.filter(item => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+    expect(results.violations).toEqual([]);
   }
   expect(errors).toEqual([]);
 });
@@ -425,7 +473,7 @@ test('@a11y main routes have no serious accessibility violations', async ({ page
 test('@a11y mobile workbench fits 390px and exposes its views', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/demo');
-  await expect(page.getByRole('tab', { name: 'Entities' })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Names' })).toBeVisible();
   await expect(page.getByLabel('Main navigation').getByRole('link', { name: 'Privacy' })).toBeVisible();
   await page.getByRole('option', { name: /Mara Venn/ }).click();
   await expect(page.getByRole('heading', { name: 'Evidence' })).toBeVisible();
@@ -444,6 +492,21 @@ test('@a11y mobile workbench fits 390px and exposes its views', async ({ page })
   expect(undersizedText).toEqual([]);
 });
 
+test('@a11y mobile landing keeps informational text and controls at 16px or larger', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  const undersized = await page.locator('main :is(p, li, a, button):visible, footer :is(p, a):visible').evaluateAll(elements => elements
+    .filter(element => Number.parseFloat(getComputedStyle(element).fontSize) < 16)
+    .map(element => ({ text: (element.textContent ?? '').trim(), size: getComputedStyle(element).fontSize })));
+  expect(undersized).toEqual([]);
+  const controls = await page.locator('a:visible, button:visible').evaluateAll(elements => elements
+    .filter(element => {
+      const box = element.getBoundingClientRect();
+      return box.width < 43.9 || box.height < 43.9;
+    }).map(element => (element.textContent ?? '').trim()));
+  expect(controls).toEqual([]);
+});
+
 test('@regression all three first-screen facts fit in a 1440 by 900 desktop viewport', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
@@ -455,7 +518,7 @@ test('@regression all three first-screen facts fit in a 1440 by 900 desktop view
 test('@a11y keyboard shortcuts, entity arrows and the chapter dialog remain operable', async ({ page }) => {
   await page.goto('/demo');
   await page.keyboard.press('/');
-  await expect(page.getByLabel('Search mentions')).toBeFocused();
+  await expect(page.getByLabel('Search names and chapters')).toBeFocused();
   await page.locator('[data-entity]').first().focus();
   await page.keyboard.press('ArrowDown');
   await expect(page.locator('[data-entity]').nth(1)).toBeFocused();
@@ -486,7 +549,7 @@ test('@regression slash focuses search during startup and remains text inside in
   releaseWorkbench();
   await navigation;
 
-  const search = page.getByLabel('Search mentions');
+  const search = page.getByLabel('Search names and chapters');
   await expect(search).toBeFocused();
   await page.keyboard.press('/');
   await expect(search).toHaveValue('/');
@@ -508,7 +571,7 @@ test('@a11y demo focus and mobile tabs keep a visible keyboard path', async ({ p
   await expect(page.getByRole('button', { name: 'Reset demo' })).toHaveCSS('box-shadow', /rgb\(21, 21, 21\)/);
 
   await page.setViewportSize({ width: 390, height: 844 });
-  const entities = page.getByRole('tab', { name: 'Entities' });
+  const entities = page.getByRole('tab', { name: 'Names' });
   await expect(entities).toHaveAttribute('aria-controls', 'entities-panel');
   await expect(entities).toHaveAttribute('tabindex', '0');
   await entities.focus();
