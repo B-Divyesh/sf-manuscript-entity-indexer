@@ -215,10 +215,10 @@ test('@claim:checkout-available the live purchase link starts hosted checkout', 
 
 test('@claim:platform-download selects current macOS, Windows and Linux installers', async ({ browser }) => {
   const assets = [
-    'Manuscript.Entity.Indexer_0.1.3_aarch64.dmg',
-    'Manuscript.Entity.Indexer_0.1.3_x64-setup.exe',
-    'Manuscript.Entity.Indexer_0.1.3_amd64.AppImage'
-  ].map(name => ({ name, browser_download_url: `https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.3/${name}` }));
+    'Manuscript.Entity.Indexer_0.1.4_aarch64.dmg',
+    'Manuscript.Entity.Indexer_0.1.4_x64-setup.exe',
+    'Manuscript.Entity.Indexer_0.1.4_amd64.AppImage'
+  ].map(name => ({ name, browser_download_url: `https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.4/${name}` }));
   for (const [platformValue, label, suffix] of [
     ['MacIntel', 'macOS', '.dmg'],
     ['Win32', 'Windows', '.exe'],
@@ -230,7 +230,7 @@ test('@claim:platform-download selects current macOS, Windows and Linux installe
     await page.route('https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify([{ tag_name: 'v0.1.3', assets }])
+      body: JSON.stringify([{ tag_name: 'v0.1.4', assets }])
     }));
     await page.goto('/');
     const download = page.getByRole('link', { name: `Download for ${label}` });
@@ -368,6 +368,39 @@ test('@a11y keyboard shortcuts, entity arrows and the chapter dialog remain oper
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(page.getByRole('button', { name: /01 — The tide ledger/ }).first()).toBeFocused();
+});
+
+test('@regression slash focuses search during startup and remains text inside inputs', async ({ page }) => {
+  let releaseWorkbench!: () => void;
+  const workbenchReleased = new Promise<void>(resolve => { releaseWorkbench = resolve; });
+  let markWorkbenchRequested!: () => void;
+  const workbenchRequested = new Promise<void>(resolve => { markWorkbenchRequested = resolve; });
+
+  await page.route(/\/assets\/main-[^/]+\.js$/, async route => {
+    markWorkbenchRequested();
+    await workbenchReleased;
+    await route.continue();
+  });
+
+  const navigation = page.goto('/demo');
+  await workbenchRequested;
+  await page.keyboard.press('/');
+  releaseWorkbench();
+  await navigation;
+
+  const search = page.getByLabel('Search mentions');
+  await expect(search).toBeFocused();
+  await page.keyboard.press('/');
+  await expect(search).toHaveValue('/');
+
+  await search.fill('');
+  await page.getByRole('option', { name: /Mara Venn/ }).click();
+  const displayName = page.getByLabel('Display name');
+  await displayName.focus();
+  await page.keyboard.press('End');
+  await page.keyboard.press('/');
+  await expect(displayName).toHaveValue('Mara Venn/');
+  await expect(displayName).toBeFocused();
 });
 
 test('@a11y demo focus and mobile tabs keep a visible keyboard path', async ({ page }) => {

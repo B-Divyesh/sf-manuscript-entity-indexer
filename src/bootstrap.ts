@@ -8,6 +8,31 @@ declare global {
 }
 
 const isStaticLanding = location.pathname === '/' && !new URLSearchParams(location.search).has('license');
+let pendingSearchFocus = false;
+
+function isTextEntryTarget(target: EventTarget | null): boolean {
+  return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])'));
+}
+
+function focusSearch(): boolean {
+  const search = document.querySelector<HTMLInputElement>('#index-search');
+  if (!search) return false;
+  search.focus();
+  return true;
+}
+
+document.addEventListener('keydown', event => {
+  if (event.key !== '/' || event.defaultPrevented || event.isComposing || event.metaKey || event.ctrlKey || event.altKey || isTextEntryTarget(event.target)) return;
+  if (location.pathname !== '/demo' && !document.querySelector('#index-search')) return;
+  event.preventDefault();
+  pendingSearchFocus = !focusSearch();
+});
+
+function restorePendingSearchFocus(): void {
+  if (!pendingSearchFocus) return;
+  pendingSearchFocus = false;
+  requestAnimationFrame(() => focusSearch());
+}
 
 if (isStaticLanding) {
   document.querySelectorAll<HTMLAnchorElement>('a.route-link').forEach(link => link.addEventListener('click', async event => {
@@ -25,7 +50,7 @@ if (isStaticLanding) {
   else window.addEventListener('load', scheduleDownload, { once: true });
 } else {
   document.querySelector('#app')?.replaceChildren();
-  void import('./main');
+  void import('./main').then(restorePendingSearchFocus);
 }
 
 if ('serviceWorker' in navigator && !window.__TAURI_INTERNALS__) {

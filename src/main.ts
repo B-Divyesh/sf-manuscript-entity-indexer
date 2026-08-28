@@ -41,7 +41,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>Keep a private continuity ledger beside your manuscript.</p>
     <nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav>
-    <p class="folio">v0.1.3 · Original generated still life</p>
+    <p class="folio">v0.1.4 · Original generated still life</p>
   </footer>`;
 }
 
@@ -452,9 +452,6 @@ function handleAction(action: string): void {
   }
 }
 
-document.addEventListener('keydown', event => {
-  if (event.key === '/' && !['INPUT', 'TEXTAREA'].includes((event.target as HTMLElement).tagName)) { event.preventDefault(); document.querySelector<HTMLInputElement>('#index-search')?.focus(); }
-});
 window.addEventListener('popstate', () => {
   if (isDemoPath()) loadDemo(); else if (location.pathname === '/app') project = loadProject();
   render(true);
