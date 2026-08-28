@@ -100,6 +100,7 @@ test('@claim:supported-imports imports Markdown and DOCX text', async ({ page })
     await expect(page.getByText('2 files', { exact: false }).first()).toBeVisible();
     await expect(page.getByRole('option', { name: /Mara Venn/ })).toBeVisible();
     await expect(page.getByRole('option', { name: /Ilya Chen/ })).toBeVisible();
+    await expect(page.getByRole('option', { name: /白港/ })).toBeVisible();
     await expect(page.getByRole('option', { name: /ユキ/ })).toBeVisible();
     await expect(page.getByRole('option', { name: /민서/ })).toBeVisible();
   } finally {
