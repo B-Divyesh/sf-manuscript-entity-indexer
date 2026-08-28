@@ -1,0 +1,9 @@
+{
+  "name": "Manuscript Entity Indexer",
+  "short_name": "Entity Index",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#f3efe5",
+  "theme_color": "#f3efe5",
+  "icons": [{"src":"/apple-touch-icon.png","sizes":"180x180","type":"image/png"}]
+}

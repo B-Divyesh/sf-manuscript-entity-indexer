@@ -1,0 +1,29 @@
+[package]
+name = "manuscript-entity-indexer"
+version = "0.1.0"
+description = "A local continuity ledger for multilingual manuscripts"
+authors = ["Param Factory"]
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "manuscript_entity_indexer_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "=2.4.1", features = [] }
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+tauri = { version = "=2.8.5", features = [] }
+tauri-plugin-dialog = "=2.4.0"
+walkdir = "2.5.0"
+zip = { version = "2.2.2", default-features = false, features = ["deflate"] }
+regex = "1.11.1"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

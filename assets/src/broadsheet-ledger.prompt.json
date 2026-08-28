@@ -1,0 +1,8 @@
+{
+  "date": "2026-08-28",
+  "tool": "/opt/fleet/lib/gen-image.sh",
+  "deployment": "factory-image",
+  "size": "1536x1024",
+  "quality": "high",
+  "prompt": "Use case: stylized-concept. Asset type: wide landing-page editorial hero and social crop. Overhead archival editor's desk on warm off-white paper. Several loose multilingual manuscript sheets suggested only by abstract ink glyph shapes, a slim black entity ledger, black index tabs, fine cotton threads connecting repeated mentions, and three restrained red proofreader marks. Monochrome editorial still life, tactile paper fibers, subtle halftone grain, photographed rather than 3D. Landscape composition, strong asymmetry, generous quiet paper space, objects remain legible when cropped to 1200 by 630. Soft north-window light with crisp shallow shadows. Palette of warm cream, carbon black, graphite gray, one dark red accent. No people, no hands, no readable text, no fake letters, no logos, no brands, no screens, no gradients, no neon color, no watermark."
+}

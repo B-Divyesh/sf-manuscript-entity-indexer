@@ -1,0 +1,33 @@
+{
+  "name": "manuscript-entity-indexer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run build:site",
+    "build:app": "vite build --outDir dist/app",
+    "build:site": "vite build --outDir dist/site && node scripts/postbuild.mjs",
+    "tauri": "tauri",
+    "test": "vitest run && playwright test",
+    "test:unit": "vitest run",
+    "test:claims": "playwright test",
+    "test:a11y": "playwright test --grep @a11y"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "2.8.0",
+    "@tauri-apps/plugin-dialog": "2.4.0",
+    "fflate": "0.8.2"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.58.2",
+    "@tauri-apps/cli": "2.8.4",
+    "typescript": "5.8.3",
+    "vite": "6.1.0",
+    "vitest": "3.0.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

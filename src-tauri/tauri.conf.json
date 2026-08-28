@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Manuscript Entity Indexer",
+  "version": "0.1.0",
+  "identifier": "in.sociobot.manuscript-entity-indexer",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:4173/app",
+    "beforeBuildCommand": "npm run build:app",
+    "frontendDist": "../dist/app"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Manuscript Entity Indexer",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 390,
+        "minHeight": 640,
+        "url": "index.html?desktop=1"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' asset: http://asset.localhost; img-src 'self' asset: http://asset.localhost data:; style-src 'self'; script-src 'self'; connect-src 'self' https://api.sociobot.in"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Productivity",
+    "shortDescription": "Track characters, places and aliases offline.",
+    "longDescription": "A local continuity ledger for multilingual Markdown, text and DOCX manuscripts.",
+    "copyright": "Copyright 2026 Param Factory",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "linux": { "deb": { "depends": [] } }
+  }
+}
