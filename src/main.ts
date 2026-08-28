@@ -6,6 +6,7 @@ import { cachedLicenseState, captureLicense, checkoutUrl, removeLicense, storeLi
 import { resolveCurrentDownload } from './downloads';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
+const capturedCheckoutLicense = captureLicense();
 let project: Project | null = null;
 let selectedEntityId = '';
 let activeView: 'entities' | 'evidence' | 'timeline' = 'entities';
@@ -39,8 +40,8 @@ function header(): string {
 function footer(): string {
   return `<footer class="site-footer">
     <p>Keep a private continuity ledger beside your manuscript.</p>
-    <nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://param.sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav>
-    <p class="folio">v0.1.2 · Original generated still life</p>
+    <nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav>
+    <p class="folio">v0.1.3 · Original generated still life</p>
   </footer>`;
 }
 
@@ -217,7 +218,7 @@ function highlight(text: string, match: string): string {
 }
 
 function privacyPage(): string {
-  return `${header()}<main id="main" class="legal-main"><p class="eyebrow">Policy · 28 August 2026</p><h1 tabindex="-1">Your manuscript stays yours</h1><p class="legal-dek">The app reads selected files on your device. It does not upload manuscript text.</p><section><h2>What the app stores</h2><p>The web edition stores your index in browser storage. Demo changes stay in memory and disappear when you leave.</p><p>The desktop edition stores the index on your computer. It never changes source chapters.</p></section><section><h2>Network requests</h2><p>The index needs no network. The landing page may ask GitHub for current download links. License checks send only your license token to Sociobot.</p></section><section><h2>Payments</h2><p>Sociobot and Dodo handle checkout, receipts and refunds. This app never receives payment card details.</p></section><section><h2>Remove your data</h2><p>Use “Clear local index” in the workbench. You can also clear this site’s browser storage.</p></section><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>${footer()}`;
+  return `${header()}<main id="main" class="legal-main"><p class="eyebrow">Policy · 28 August 2026</p><h1 tabindex="-1">Your manuscript stays yours</h1><p class="legal-dek">The app reads selected files on your device. It does not upload manuscript text.</p><section><h2>What the app stores</h2><p>Outside the demo, this browser stores your index until you clear it. Demo changes stay in memory and disappear when you leave.</p><p>The app reads chapter copies and never changes source chapters.</p></section><section><h2>Network requests</h2><p>The index needs no network. The landing page may ask GitHub for current download links. License checks send only your license token to Sociobot.</p></section><section><h2>Payments</h2><p>Sociobot and Dodo handle checkout, receipts and refunds. No card details enter this app.</p></section><section><h2>Remove your data</h2><p>Use “Clear local index” in the workbench. You can also clear this site’s browser storage.</p></section><p>Questions: <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a></p></main>${footer()}`;
 }
 
 function termsPage(): string {
@@ -459,10 +460,9 @@ window.addEventListener('popstate', () => {
   render(true);
 });
 
-captureLicense();
 if ('__TAURI_INTERNALS__' in window && new URLSearchParams(location.search).has('desktop') && location.pathname !== '/app') {
   history.replaceState({}, '', '/app');
 }
 if (isDemoPath()) loadDemo(); else if (location.pathname === '/app') project = loadProject();
 render();
-if (license.active && !isDemoPath()) void verifyLicense().then(result => { license = result; if (location.pathname === '/app') render(); });
+if ((capturedCheckoutLicense || license.active) && !isDemoPath()) void verifyLicense().then(result => { license = result; if (location.pathname === '/app') render(); });

@@ -57,7 +57,7 @@ test('@claim:csv-export exports one CSV row per visible entity', async ({ page }
   expect(content).toContain('"name","type","aliases","mentions","chapters"');
 });
 
-test('@claim:alias-review accepted aliases merge and can be undone', async ({ page }) => {
+test('@claim:alias-review aliases can be found, renamed, classified, merged and undone', async ({ page }) => {
   await page.goto('/demo');
   await page.getByRole('option', { name: /Mara Venn/ }).click();
   await expect(page.getByText('Suggested alias', { exact: true }).first()).toBeVisible();
@@ -65,6 +65,12 @@ test('@claim:alias-review accepted aliases merge and can be undone', async ({ pa
   await expect(page.getByText(/Also: Captain Venn/)).toBeVisible();
   await page.getByRole('button', { name: 'Undo' }).click();
   await expect(page.getByRole('option', { name: /Captain Venn/ })).toBeVisible();
+  await page.getByLabel('Display name').fill('Mara Vale');
+  await page.getByLabel('Type').selectOption('place');
+  await page.getByRole('button', { name: 'Save entity' }).click();
+  await page.getByLabel('Search mentions').fill('Mara Vale');
+  await expect(page.getByRole('option', { name: /Mara Vale.*place/ })).toBeVisible();
+  await expect(page.getByRole('option', { name: /Captain Venn/ })).toHaveCount(0);
 });
 
 test('@claim:timeline-ledger timeline notes stay linked to the selected entity', async ({ page }) => {
@@ -160,19 +166,17 @@ test('@claim:local-project-storage keeps a real index after reload and clears it
   }
 });
 
-test('@claim:owner-license a verified owner license removes the three-file limit', async ({ page }) => {
-  await page.route('https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/verify?license=test-owner', route => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ valid: true, reason: 'ok', expires_at: null })
-  }));
-  await page.goto('/app');
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
+test('@claim:owner-license a checkout-return license is verified immediately and removes the file limit', async ({ page }) => {
+  let verificationRequests = 0;
+  await page.route('https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/verify?license=test-owner', async route => {
+    verificationRequests += 1;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok', expires_at: null }) });
+  });
+  await page.goto('/app?license=test-owner');
+  await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByRole('link', { name: 'Buy for $24' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/checkout');
-  await page.getByLabel('Have a license?').fill('test-owner');
-  await page.getByRole('button', { name: 'Verify license' }).click();
   await expect(page.getByRole('heading', { name: 'Owner edition' })).toBeVisible();
+  expect(verificationRequests).toBe(1);
   const folder = await mkdtemp(join(tmpdir(), 'mei-owner-'));
   try {
     await Promise.all([1, 2, 3, 4].map(number => writeFile(join(folder, `chapter-${number}.md`), `Mara Venn entered Glass Harbor in chapter ${number}.`)));
@@ -183,16 +187,73 @@ test('@claim:owner-license a verified owner license removes the three-file limit
   }
 });
 
-test('@claim:platform-download selects a current installer for the visitor', async ({ page }) => {
-  await page.route('https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1', route => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify([{ tag_name: 'v0.1.2', assets: [{ name: 'Manuscript.Entity.Indexer_0.1.2_amd64.AppImage', browser_download_url: 'https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.2/Manuscript.Entity.Indexer_0.1.2_amd64.AppImage' }] }])
-  }));
+test('@claim:billing-privacy license checks send only the token and checkout stays with Sociobot', async ({ page }) => {
+  let requestEvidence: { method: string; url: string; body: string | null } | undefined;
+  await page.route('https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/verify?license=private-token', async route => {
+    const request = route.request();
+    requestEvidence = { method: request.method(), url: request.url(), body: request.postData() };
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ valid: false, reason: 'invalid', expires_at: null }) });
+  });
+  await page.goto('/app');
+  await page.getByLabel('Have a license?').fill('private-token');
+  await page.getByRole('button', { name: 'Verify license' }).click();
+  await expect(page.getByRole('heading', { name: 'License no longer active' })).toBeVisible();
+  expect(requestEvidence).toEqual({
+    method: 'GET',
+    url: 'https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/verify?license=private-token',
+    body: null
+  });
+  await expect(page.locator('input[type="email"], input[autocomplete="cc-number"], input[name*="card" i]')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Buy for $24' })).toHaveAttribute('href', /^https:\/\/api\.sociobot\.in\//);
+});
+
+test('@claim:checkout-available the live purchase link starts hosted checkout', async ({ request }) => {
+  const response = await request.get('https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/checkout', { maxRedirects: 0 });
+  expect(response.status()).toBe(303);
+  expect(response.headers().location).toMatch(/^https:\/\/checkout\.dodopayments\.com\/session\//);
+});
+
+test('@claim:platform-download selects current macOS, Windows and Linux installers', async ({ browser }) => {
+  const assets = [
+    'Manuscript.Entity.Indexer_0.1.3_aarch64.dmg',
+    'Manuscript.Entity.Indexer_0.1.3_x64-setup.exe',
+    'Manuscript.Entity.Indexer_0.1.3_amd64.AppImage'
+  ].map(name => ({ name, browser_download_url: `https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.3/${name}` }));
+  for (const [platformValue, label, suffix] of [
+    ['MacIntel', 'macOS', '.dmg'],
+    ['Win32', 'Windows', '.exe'],
+    ['Linux x86_64', 'Linux', '.AppImage']
+  ]) {
+    const context = await browser.newContext();
+    await context.addInitScript(value => Object.defineProperty(navigator, 'platform', { configurable: true, get: () => value }), platformValue);
+    const page = await context.newPage();
+    await page.route('https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([{ tag_name: 'v0.1.3', assets }])
+    }));
+    await page.goto('/');
+    const download = page.getByRole('link', { name: `Download for ${label}` });
+    await expect(download).toBeVisible();
+    await expect(download).toHaveAttribute('href', new RegExp(`${suffix.replace('.', '\\.')}\$`));
+    await context.close();
+  }
+});
+
+test('@regression an online reload replaces a stale cached shell and keeps the repaired shell offline', async ({ page, context }) => {
   await page.goto('/');
-  const download = page.getByRole('link', { name: 'Download for Linux' });
-  await expect(download).toBeVisible();
-  await expect(download).toHaveAttribute('href', /v0\.1\.2\/Manuscript\.Entity\.Indexer_0\.1\.2_amd64\.AppImage$/);
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+    if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true }));
+    const cache = await caches.open('mei-shell-v2');
+    await cache.put('/', new Response('<!doctype html><title>stale</title><p>STALE SHELL SENTINEL</p>', { headers: { 'Content-Type': 'text/html' } }));
+  });
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Index every name across your manuscript' })).toBeVisible();
+  await expect(page.getByText('STALE SHELL SENTINEL')).toHaveCount(0);
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Index every name across your manuscript' })).toBeVisible();
 });
 
 test('@regression landing startup excludes the workbench and stays below 10 KB of JavaScript', async ({ page }) => {

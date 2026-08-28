@@ -29,10 +29,10 @@
   },
   {
     "id": "alias-review",
-    "claim": "Authors can review, merge and undo suggested aliases.",
+    "claim": "Authors can search, rename, classify, merge and undo suggested aliases.",
     "where": "landing preview, workbench, README",
     "test": "npm run test:claims -- --grep @claim:alias-review",
-    "sandbox": "demo project; merge Captain Venn into Mara Venn, assert alias, then undo"
+    "sandbox": "demo project; merge and undo Captain Venn, then rename and classify Mara Venn and find the edit with search"
   },
   {
     "id": "timeline-ledger",
@@ -81,13 +81,27 @@
     "claim": "A verified $24 owner license removes the three-file limit.",
     "where": "landing pricing, workbench license panel, terms, README",
     "test": "npm run test:claims -- --grep @claim:owner-license",
-    "sandbox": "fresh browser context with a recorded valid verification response; verify a license and import four files"
+    "sandbox": "fresh browser context with a recorded valid verification response; return from checkout with a license query, assert immediate verification and import four files"
+  },
+  {
+    "id": "billing-privacy",
+    "claim": "Checkout stays on Sociobot, while license checks send only the license token and no card details enter this app.",
+    "where": "privacy page, pricing, README",
+    "test": "npm run test:claims -- --grep @claim:billing-privacy",
+    "sandbox": "fresh browser context with a recorded invalid response; inspect the verification method, URL and body, checkout origin and absence of card fields"
+  },
+  {
+    "id": "checkout-available",
+    "claim": "The $24 purchase link starts Sociobot's hosted checkout.",
+    "where": "landing pricing, workbench, terms, README",
+    "test": "npm run test:claims -- --grep @claim:checkout-available",
+    "sandbox": "live response check without following the redirect; assert HTTP 303 to a Dodo-hosted checkout session"
   },
   {
     "id": "platform-download",
-    "claim": "The landing page selects a current desktop installer for the visitor's platform.",
+    "claim": "The landing page selects current macOS, Windows and Linux desktop installers.",
     "where": "landing download block, README",
     "test": "npm run test:claims -- --grep @claim:platform-download",
-    "sandbox": "fresh browser context with recorded GitHub release metadata; assert the Linux button links to the matching release asset"
+    "sandbox": "three fresh browser contexts with recorded GitHub release metadata; assert each detected platform links to its matching release asset"
   }
 ]

@@ -10,6 +10,16 @@ describe('lightweight manuscript indexer', () => {
     expect(project.entities.some(entity => entity.name === '白港' && entity.kind === 'place')).toBe(true);
   });
 
+  it('deduplicates overlapping Han name and place matches at one source position', () => {
+    const project = indexDocuments('CJK evidence', structuredClone(sampleDocuments));
+    const whiteHarbor = project.entities.find(entity => entity.name === '白港');
+    const redBridge = project.entities.find(entity => entity.name === '赤橋');
+    expect(whiteHarbor?.mentionIds).toHaveLength(3);
+    expect(redBridge?.mentionIds).toHaveLength(1);
+    expect(new Set(project.mentions.map(mention => mention.id)).size).toBe(project.mentions.length);
+    expect(project.mentions.filter(mention => mention.entityId === whiteHarbor?.id).map(mention => mention.position)).toHaveLength(3);
+  });
+
   it('finds Kana and Hangul names when they are followed by their local particles', () => {
     const document = {
       id: 'cjk', title: 'CJK', path: 'cjk.md',

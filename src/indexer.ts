@@ -29,12 +29,12 @@ function candidateKind(name: string): EntityKind {
 }
 
 export function extractCandidates(document: ManuscriptDocument): Array<{ name: string; position: number }> {
-  const found = new Map<string, number[]>();
+  const found = new Map<string, Set<number>>();
   const add = (name: string, position: number) => {
     const clean = name.replace(/[“”"'。、，,.!?;:]+$/u, '').trim();
     if (clean.length < 2 || STOPWORDS.has(clean)) return;
-    const positions = found.get(clean) ?? [];
-    positions.push(position);
+    const positions = found.get(clean) ?? new Set<number>();
+    positions.add(position);
     found.set(clean, positions);
   };
 
@@ -50,7 +50,7 @@ export function extractCandidates(document: ManuscriptDocument): Array<{ name: s
   const hangulNamed = /[\p{Script=Hangul}]{2,6}(?=(?:이|가|은|는|을|를|에|에게|의|와|과))/gu;
   for (const match of document.text.matchAll(hangulNamed)) add(match[0], match.index ?? 0);
 
-  return [...found.entries()].flatMap(([name, positions]) => positions.map(position => ({ name, position })));
+  return [...found.entries()].flatMap(([name, positions]) => [...positions].map(position => ({ name, position })));
 }
 
 function comparableTokens(name: string): Set<string> {

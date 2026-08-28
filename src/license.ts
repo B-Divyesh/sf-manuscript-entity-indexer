@@ -11,13 +11,14 @@ export interface LicenseState {
 
 export const checkoutUrl = `https://api.sociobot.in/api/v1/products/${SLUG}/checkout`;
 
-export function captureLicense(): void {
+export function captureLicense(): boolean {
   const url = new URL(location.href);
   const token = url.searchParams.get('license');
-  if (!token) return;
-  localStorage.setItem(TOKEN_KEY, token);
+  if (!token) return false;
+  storeLicense(token);
   url.searchParams.delete('license');
   history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  return true;
 }
 
 export function storeLicense(token: string): void {

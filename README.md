@@ -16,14 +16,14 @@ and disappear on reload.
 - Finds recurring person and place candidates with Unicode-aware rules.
 - Shows every mention beside its chapter copy.
 - Suggests possible aliases and explains the matching rule.
-- Lets the author merge, rename, classify, search and undo aliases.
+- Lets the author merge, rename, classify, search and undo alias changes.
 - Adds entity-linked continuity notes and exports the ledger as CSV.
 - Stores a real web index in local browser storage until the author clears it.
 - Works after the first web visit without internet.
 
 The free edition indexes three files at a time. A verified owner license costs
-$24 once and removes that limit. Checkout and license verification use the
-Sociobot billing API. No product ID is embedded.
+$24 once and removes that limit. Checkout stays on Sociobot. License checks
+send only the license token.
 
 ## Privacy
 
@@ -71,7 +71,7 @@ macOS and Windows builds are unsigned until the operator supplies signing
 certificates. Users must approve the operating system warning for these
 preview builds.
 
-The landing page selects the current installer for the visitor’s platform.
+The landing page selects current macOS, Windows and Linux installers.
 
 ## Project notes
 
