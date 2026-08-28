@@ -43,8 +43,8 @@ Verification completed on 28 August 2026:
 - Production JS: about 26 KB gzip across the initial chunks.
 - Production CSS: 5.07 KB gzip.
 - Mobile hero: 20 KB AVIF or 36 KB WebP.
-- Lighthouse mobile: performance 99, accessibility 100, best practices 100,
-  SEO 100, FCP 1.0 s, LCP 1.7 s, TBT 120 ms and CLS 0.
+- Lighthouse mobile: performance 100, accessibility 100, best practices 100,
+  SEO 100, FCP 1.0 s, LCP 1.5 s, TBT 40 ms and CLS 0.
 
 The image was visually reviewed for branding, seams and misleading UI. It has
 no logos, people or readable product claims.
