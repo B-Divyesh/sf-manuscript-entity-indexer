@@ -1,0 +1,79 @@
+[
+  {
+    "id": "demo-isolation",
+    "claim": "The demo uses sample data and saves no edits.",
+    "where": "landing action, demo banner, README",
+    "test": "npm run test:claims -- --grep @claim:demo-isolation",
+    "sandbox": "fresh browser context; enter from landing, edit an entity, then reload"
+  },
+  {
+    "id": "local-processing",
+    "claim": "Manuscript text stays on the device.",
+    "where": "landing facts, privacy page, README",
+    "test": "npm run test:claims -- --grep @claim:local-processing",
+    "sandbox": "demo flow with every request observed; assert same-origin only"
+  },
+  {
+    "id": "offline-reload",
+    "claim": "Works after the first visit without internet.",
+    "where": "landing facts, README",
+    "test": "npm run test:claims -- --grep @claim:offline-reload",
+    "sandbox": "fresh browser context; load demo, wait for service worker, go offline, reload"
+  },
+  {
+    "id": "csv-export",
+    "claim": "Exports the entity ledger as CSV.",
+    "where": "workbench toolbar, landing steps, README",
+    "test": "npm run test:claims -- --grep @claim:csv-export",
+    "sandbox": "demo project; download CSV and assert its header and one row per entity"
+  },
+  {
+    "id": "alias-review",
+    "claim": "Authors can review, merge and undo suggested aliases.",
+    "where": "landing preview, workbench, README",
+    "test": "npm run test:claims -- --grep @claim:alias-review",
+    "sandbox": "demo project; merge Captain Venn into Mara Venn, assert alias, then undo"
+  },
+  {
+    "id": "timeline-ledger",
+    "claim": "Authors can add entity-linked continuity notes.",
+    "where": "landing steps, workbench, README",
+    "test": "npm run test:claims -- --grep @claim:timeline-ledger",
+    "sandbox": "demo project; add a note to Mara Venn, assert it, then reset demo"
+  },
+  {
+    "id": "chapter-evidence",
+    "claim": "Each mention opens its source chapter copy.",
+    "where": "workbench evidence list, README",
+    "test": "npm run test:claims -- --grep @claim:chapter-evidence",
+    "sandbox": "demo project; open Mara Venn evidence and assert the chapter dialog contains its source sentence"
+  },
+  {
+    "id": "supported-imports",
+    "claim": "Imports Markdown, text and DOCX chapters with Unicode names.",
+    "where": "landing method, empty state, README",
+    "test": "npm run test:claims -- --grep @claim:supported-imports",
+    "sandbox": "fresh browser context; import generated Markdown and DOCX files and assert extracted entities"
+  },
+  {
+    "id": "free-file-limit",
+    "claim": "The free edition indexes three files at a time.",
+    "where": "pricing, empty state, terms, README",
+    "test": "npm run test:claims -- --grep @claim:free-file-limit",
+    "sandbox": "fresh browser context without a license; import four files and assert only three are indexed"
+  },
+  {
+    "id": "local-project-storage",
+    "claim": "The web edition stores a real index in local browser storage until the author clears it.",
+    "where": "privacy page, README",
+    "test": "npm run test:claims -- --grep @claim:local-project-storage",
+    "sandbox": "fresh browser context; import a folder, reload, clear the index, and reload again"
+  },
+  {
+    "id": "owner-license",
+    "claim": "A verified $24 owner license removes the three-file limit.",
+    "where": "landing pricing, workbench license panel, terms, README",
+    "test": "npm run test:claims -- --grep @claim:owner-license",
+    "sandbox": "fresh browser context with a recorded valid verification response; verify a license and import four files"
+  }
+]

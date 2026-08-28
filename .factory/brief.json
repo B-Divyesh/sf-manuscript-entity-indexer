@@ -1,0 +1,9 @@
+{
+  "slug": "manuscript-entity-indexer",
+  "title": "Manuscript Entity Indexer",
+  "summary": "Index characters, places and aliases without uploading your manuscript.",
+  "artifact_class": "desktop-app",
+  "monetization": "one-time",
+  "build_command": "npm run build:site",
+  "deploy": { "dist_dir": "dist/site" }
+}
