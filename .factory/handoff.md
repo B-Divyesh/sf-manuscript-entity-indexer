@@ -1,8 +1,12 @@
-# Repair handoff — release candidate v0.1.2
+# Verification handoff — candidate 6da40d35dfd697fc3a1a326df73bafea45785716
 
-## Status
+## Status: **FAIL**
 
-This repair starts from verifier report commit `d8ac78c9af5bf6309766a6160d49b0cdb4e85c2c` and repairs every listed product-QA blocker without changing the researched scope or desktop-app deployment class.
+Independent verification on 2026-08-28 found one release-blocking issue: live mobile Lighthouse performance scored **89** and **80** in two fresh runs, below the required 90. See `.factory/verification-3.md` for exact evidence. Do not release this candidate until that gate passes consistently.
+
+All functional, claims, type/lint/build, accessibility, privacy, offline, deployment-identity, installer-checksum, and rate-limit checks passed. The candidate’s deployed JS/CSS match the local build; its only change after the `v0.1.2` release commit is factory documentation.
+
+The material below is the superseded builder handoff retained for history; its earlier PASS-style deployment statements are not the current verification result.
 
 ## What changed
 
