@@ -27,7 +27,7 @@ button, .button { min-width: 44px; min-height: 44px; }
 button { cursor: pointer; }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 4px; }
 a:hover { text-decoration-thickness: 2px; }
-:focus-visible { outline: 3px solid var(--red-pencil); outline-offset: 3px; }
+:focus-visible { outline: 3px solid #fffdf7; outline-offset: 3px; box-shadow: 0 0 0 6px var(--ink); }
 img { display: block; max-width: 100%; }
 h1, h2, h3, p { margin-top: 0; }
 h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif; line-height: .98; font-weight: 400; }
@@ -229,9 +229,10 @@ dialog > p { margin: 0; padding: 14px 20px; border-top: 1px solid var(--ink); co
 @media (max-width: 700px) {
   .site-header { align-items: flex-start; padding: 12px 16px; }
   .site-header nav { gap: 12px; }
-  .site-header nav a { font-size: .65rem; }
+  .site-header nav a { font-size: 1rem; }
   .site-header nav a:nth-child(3) { display: none; }
   .wordmark span:last-child { display: none; }
+  .wordmark-mark { font-size: 1rem; }
   .hero-grid { padding-top: 40px; }
   .hero-copy h1 { font-size: clamp(3.25rem, 16vw, 5rem); }
   .hero-art img { box-shadow: 7px 7px 0 rgba(21,21,21,.12); }
@@ -260,14 +261,24 @@ dialog > p { margin: 0; padding: 14px 20px; border-top: 1px solid var(--ink); co
   .search-label { grid-column: 1 / -1; }
   .notice, .error { margin-left: 16px; margin-right: 16px; }
   .mobile-tabs { position: sticky; top: 0; z-index: 10; display: grid; grid-template-columns: repeat(3, 1fr); background: var(--paper); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
-  .mobile-tabs button { border: 0; border-right: 1px solid var(--ink); background: var(--paper); font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; }
+  .mobile-tabs button { border: 0; border-right: 1px solid var(--ink); background: var(--paper); font-size: 1rem; text-transform: uppercase; letter-spacing: .04em; }
   .mobile-tabs button[aria-selected="true"] { background: var(--ink); color: var(--sheet); }
   .workbench-grid { display: block; border-top: 0; }
   .workbench-grid > * { padding: 16px !important; border: 0; }
-  .mobile-hidden { display: none; }
+  .mobile-hidden { display: none !important; }
   .ledger-panel { display: block; }
   .workbench-main .license-panel { margin-left: 16px; margin-right: 16px; }
   .legal-main section { grid-template-columns: 1fr; gap: 4px; }
+  /* The workbench is a reading surface. Its metadata stays at body size on a phone. */
+  .workbench-main :is(p, span, small, label, button, input, select, textarea, blockquote) { font-size: 1rem !important; }
+  .workbench-main .entity-list small,
+  .workbench-main .kind-stamp,
+  .workbench-main .panel-heading h2,
+  .workbench-main .entity-form label,
+  .workbench-main .timeline-form label,
+  .workbench-main .chapter-link,
+  .workbench-main .alias-suggestion p:first-child,
+  .workbench-main .search-label span { font-size: 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

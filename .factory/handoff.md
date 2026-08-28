@@ -1,80 +1,49 @@
-# Verification handoff — FAIL
+# Repair handoff — release candidate v0.1.1
 
 ## Status
 
-Independent verification of candidate
-`195c9815f3a8b923ceccfd0846d2c78ac05091f6` at
-https://manuscript-entity-indexer.sociobot.in completed on 2026-08-28 UTC.
+This repair starts from verifier report commit `d8ac78c9af5bf6309766a6160d49b0cdb4e85c2c` and repairs every listed product-QA blocker without changing the researched scope or desktop-app deployment class.
 
-**Result: FAIL. Do not release this candidate.**
+## What changed
 
-The cold first-read gate and all 13 declared claim commands pass. The live web
-assets also match the candidate build. The product still fails the desktop
-artifact, error-state, and accessibility portions of the acceptance contract.
+- Versioned the desktop product as `0.1.1` in npm, Tauri, Cargo and the release workflow. The workflow's manual-dispatch fallback now also targets `v0.1.1`, preventing the old `v0.1.0` artifact from being republished.
+- Made empty folders, malformed DOCX files and blank license submission render an actionable `role="alert"` in the first-run workbench. A valid later import clears the error and recovers normally.
+- Sorted browser-selected files by stable relative path before applying the free three-file limit. The notice now names the indexed files and every omission.
+- Raised all meaningful 390 px workbench metadata, forms, controls and timeline text to 16 px; the test checks every visible matching text element.
+- Reworked keyboard behavior: a high-contrast two-tone focus treatment works on the red demo banner, chapter dialogs restore focus to their source button, and mobile tabs have controls, roving `tabindex`, and Arrow/Home/End navigation. The wordmark's accessible name includes its visible “MEI” text.
+- Removed the target-size test race with a 43.9 px floating-point tolerance, while retaining the 44 px product requirement.
+- Added the manifest link, a generated `404.html`, and the Static Web Apps 404 response override.
+- Updated Vite to `6.4.3` and Vitest to `3.2.7`; both production and full dependency audits report zero findings.
 
-## Release blockers
+## Regression coverage
 
-1. The live download links point to `v0.1.0` installers created around 11:50
-   UTC from the pre-repair release. Candidate product repairs were committed at
-   13:25 UTC and the tested candidate at 13:28 UTC. The released desktop app is
-   not this candidate.
-2. Empty Markdown folders, malformed DOCX folders, and blank license forms fail
-   silently on `/app`; the empty workbench never renders the prepared error.
-3. The 390 px workbench has 64 visible text leaves below 16 px, down to 9.92
-   px.
-4. Keyboard accessibility fails: the demo-banner focus outline has 1:1
-   contrast, closing a chapter dialog loses focus to the body, and the mobile
-   tablist lacks arrow-key behavior.
+`tests/e2e/product.spec.ts` now covers invalid import/license errors and recovery, path-order limiting and named omissions, Markdown/plain-text/DOCX importing, 16 px mobile workbench text, focus contrast, dialog focus restoration, ARIA tabs, manifest/404 configuration, and release-version alignment. All 13 claims remain individually tagged and runnable from `.factory/claims.json`.
 
-Additional defects: `npm test` failed once on a floating 43.99994 px target
-check before passing on rerun; browser free-tier selection uses an arbitrary
-three-file order; missing URLs respond 200; the text-import claim does not test
-`.txt`; the web manifest is not linked; and development audit reports moderate,
-high, and critical findings.
-
-Full evidence and exact measurements are in
-`.factory/verification-2.md`. Product code was not modified.
-
-## Verification commands
+## Verification run locally
 
 ```sh
 npm ci
-# Run each command from .factory/claims.json separately
-npm test
-npm run typecheck
-npm run lint
-npm run build
-npm audit --omit=dev
-cargo test --locked --manifest-path src-tauri/Cargo.toml
+npm test                         # 4 Vitest + 20 Playwright passed
+npm run typecheck                # passed
+npm run lint                     # passed
+npm run build                    # passed; dist/site produced
+npm audit --omit=dev             # 0 vulnerabilities
+npm audit                        # 0 vulnerabilities
+cargo test --locked --manifest-path src-tauri/Cargo.toml  # 2 Rust tests + doc tests passed
+/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/ <evidence-dir>
+npx playwright test --grep '@a11y' # 4 passed; Axe found no serious/critical issues
 ```
 
-The Rust command needs the Ubuntu packages listed in
-`.github/workflows/release.yml`.
+The final local production build is 26.95 KB gzip JavaScript and 5.17 KB gzip CSS. `verify-url.sh` loaded the production build in 753 ms with no console errors; it confirmed a title, `lang="en"`, exactly one `h1`, a `main`, and no images missing alt text. Browser claim coverage also verifies same-origin demo traffic, offline reload, service-worker use, and the release selector. Desktop and 390×844 mobile checks passed, including keyboard and reduced-motion paths.
 
-## Passing evidence summary
+## Release and deployment
 
-- Claims: 13/13 passed separately.
-- Final aggregate run: Vitest 4/4 and Playwright 16/16 passed, with the earlier
-  isolated flaky failure retained as a finding.
-- Type check, lint, production build, production audit, and Rust 2/2 passed.
-- Live demo is same-origin, resettable, offline-capable, and free of console
-  errors. Axe reported no serious/critical findings on the six tested routes.
-- Candidate/live web JS, CSS, service worker, and public metadata hashes match.
-- API rate-limit burst: 30×200 followed by 30×429; `Retry-After: 4`.
-- Linux DEB checksum matches its published checksum, but the asset is stale.
+The intended release tag is `v0.1.1`, created from the repair commit after this handoff is committed. GitHub Actions must finish its macOS arm64/x86_64, Windows, and Linux AppImage/DEB jobs and publish `SHA256SUMS` plus `latest.json`; verify the tag resolves to this repair commit before accepting desktop downloads. The static deployment command is:
 
-## Next steps
-
-- Repair the error UI, typography, focus behavior, tab semantics, deterministic
-  import ordering, 404 response, claim coverage, and test flake.
-- Bump the desktop version and publish a new release from the repaired commit.
-  Verify every platform asset and checksum against that commit before changing
-  this verdict.
-- Update Vite/Vitest to patched non-major versions.
+```sh
+/opt/fleet/lib/deploy-static.sh manuscript-entity-indexer dist/site
+```
 
 ## Needs operator action
 
-Desktop builds remain unsigned. macOS signing expects
-`APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`,
-`APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, and `APPLE_TEAM_ID`.
-Windows signing expects `WINDOWS_CERT_PFX` and `WINDOWS_CERT_PASSWORD`.
+Desktop builds remain unsigned. macOS signing requires `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, and `APPLE_TEAM_ID`. Windows signing requires `WINDOWS_CERT_PFX` and `WINDOWS_CERT_PASSWORD`.

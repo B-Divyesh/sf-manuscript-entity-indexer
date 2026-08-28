@@ -88,21 +88,23 @@ test('@claim:chapter-evidence opens the chapter copy behind a mention', async ({
   await expect(dialog).toBeHidden();
 });
 
-test('@claim:supported-imports imports Markdown and DOCX text', async ({ page }) => {
+test('@claim:supported-imports imports Markdown, plain text and DOCX text', async ({ page }) => {
   await page.goto('/app');
   const xml = '<?xml version="1.0"?><w:document xmlns:w="x"><w:body><w:p><w:r><w:t>Lin Park met Ilya Chen at River Station.</w:t></w:r></w:p></w:body></w:document>';
   const docx = Buffer.from(zipSync({ 'word/document.xml': strToU8(xml) }));
   const folder = await mkdtemp(join(tmpdir(), 'mei-import-'));
   try {
     await writeFile(join(folder, 'chapter.md'), 'Mara Venn entered Glass Harbor. ユキは白港へ向かった。민서가 강변역에 도착했다。');
+    await writeFile(join(folder, 'chapter.txt'), 'Nina Ross arrived at Archive Bridge.');
     await writeFile(join(folder, 'chapter.docx'), docx);
     await page.locator('#folder-input').setInputFiles(folder);
-    await expect(page.getByText('2 files', { exact: false }).first()).toBeVisible();
+    await expect(page.getByText('3 files', { exact: false }).first()).toBeVisible();
     await expect(page.getByRole('option', { name: /Mara Venn/ })).toBeVisible();
     await expect(page.getByRole('option', { name: /Ilya Chen/ })).toBeVisible();
     await expect(page.getByRole('option', { name: /白港/ })).toBeVisible();
     await expect(page.getByRole('option', { name: /ユキ/ })).toBeVisible();
     await expect(page.getByRole('option', { name: /민서/ })).toBeVisible();
+    await expect(page.getByRole('option', { name: /Nina Ross/ })).toBeVisible();
   } finally {
     await rm(folder, { recursive: true, force: true });
   }
@@ -129,9 +131,9 @@ test('@claim:free-file-limit free edition indexes at most three files', async ({
   await page.reload();
   const folder = await mkdtemp(join(tmpdir(), 'mei-limit-'));
   try {
-    await Promise.all([1, 2, 3, 4].map(number => writeFile(join(folder, `chapter-${number}.md`), `Mara Venn entered Glass Harbor in chapter ${number}.`)));
+    await Promise.all(['04.txt', '02.md', '01.txt', '03.md'].map(name => writeFile(join(folder, name), `Mara Venn entered Glass Harbor in ${name}.`)));
     await page.locator('#folder-input').setInputFiles(folder);
-    await expect(page.getByText('Indexed the first three files.')).toBeVisible();
+    await expect(page.getByText(/Indexed the first three files in path order:.*01\.txt.*02\.md.*03\.md.*Omitted:.*04\.txt/)).toBeVisible();
     await expect(page.getByText(/· 3 files/)).toBeVisible();
   } finally {
     await rm(folder, { recursive: true, force: true });
@@ -185,12 +187,59 @@ test('@claim:platform-download selects a current installer for the visitor', asy
   await page.route('https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
-    body: JSON.stringify([{ tag_name: 'v0.1.0', assets: [{ name: 'Manuscript.Entity.Indexer_0.1.0_amd64.AppImage', browser_download_url: 'https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.0/Manuscript.Entity.Indexer_0.1.0_amd64.AppImage' }] }])
+    body: JSON.stringify([{ tag_name: 'v0.1.1', assets: [{ name: 'Manuscript.Entity.Indexer_0.1.1_amd64.AppImage', browser_download_url: 'https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.1/Manuscript.Entity.Indexer_0.1.1_amd64.AppImage' }] }])
   }));
   await page.goto('/');
   const download = page.getByRole('link', { name: 'Download for Linux' });
   await expect(download).toBeVisible();
-  await expect(download).toHaveAttribute('href', /v0\.1\.0\/Manuscript\.Entity\.Indexer_0\.1\.0_amd64\.AppImage$/);
+  await expect(download).toHaveAttribute('href', /v0\.1\.1\/Manuscript\.Entity\.Indexer_0\.1\.1_amd64\.AppImage$/);
+});
+
+test('@regression static shell links its manifest and returns the designed 404 with a 404 status in Static Web Apps', async ({ page }) => {
+  await page.goto('/missing-page');
+  await expect(page.getByRole('heading', { name: 'This clipping is not in the index' })).toBeVisible();
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', '/manifest.webmanifest');
+  const config = JSON.parse(await readFile(join(process.cwd(), 'public/staticwebapp.config.json'), 'utf8')) as { responseOverrides?: Record<string, { rewrite?: string; statusCode?: number }> };
+  expect(config.responseOverrides?.['404']).toEqual({ rewrite: '/404.html', statusCode: 404 });
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+});
+
+test('@regression desktop release metadata uses the source version instead of the stale v0.1.0 fallback', async () => {
+  const packageJson = JSON.parse(await readFile(join(process.cwd(), 'package.json'), 'utf8')) as { version: string };
+  const tauriConfig = JSON.parse(await readFile(join(process.cwd(), 'src-tauri/tauri.conf.json'), 'utf8')) as { version: string };
+  const cargoToml = await readFile(join(process.cwd(), 'src-tauri/Cargo.toml'), 'utf8');
+  const workflow = await readFile(join(process.cwd(), '.github/workflows/release.yml'), 'utf8');
+  expect(tauriConfig.version).toBe(packageJson.version);
+  expect(cargoToml).toContain(`version = "${packageJson.version}"`);
+  expect(workflow).toContain(`'v${packageJson.version}'`);
+  expect(workflow).not.toContain("|| 'v0.1.0'");
+});
+
+test('@regression import and license failures are announced and a later import recovers', async ({ page }) => {
+  await page.goto('/app');
+  const folder = await mkdtemp(join(tmpdir(), 'mei-invalid-import-'));
+  try {
+    const empty = join(folder, 'empty.md');
+    await writeFile(empty, '   ');
+    await page.locator('#folder-input').setInputFiles(folder);
+    await expect(page.getByRole('alert')).toContainText('No readable chapters were found');
+    await expect(page.getByRole('button', { name: 'Choose manuscript folder' })).toBeVisible();
+
+    await rm(empty);
+    await writeFile(join(folder, 'broken.docx'), 'not a zip');
+    await page.locator('#folder-input').setInputFiles(folder);
+    await expect(page.getByRole('alert')).toContainText('broken.docx is not a readable DOCX file');
+
+    await page.getByRole('button', { name: 'Verify license' }).click();
+    await expect(page.getByRole('alert')).toContainText('No license was entered');
+    await rm(join(folder, 'broken.docx'));
+    await writeFile(join(folder, 'recovery.txt'), 'Mara Venn entered Glass Harbor.');
+    await page.locator('#folder-input').setInputFiles(folder);
+    await expect(page.getByRole('option', { name: /Mara Venn/ })).toBeVisible();
+    await expect(page.getByRole('alert')).toHaveCount(0);
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
 });
 
 test('@a11y main routes have no serious accessibility violations', async ({ page }) => {
@@ -218,10 +267,14 @@ test('@a11y mobile workbench fits 390px and exposes its views', async ({ page })
   const undersizedControls = await page.locator('button:visible, a:visible').evaluateAll(elements => elements
     .filter(element => {
       const rect = element.getBoundingClientRect();
-      return rect.width < 44 || rect.height < 44;
+      return rect.width < 43.9 || rect.height < 43.9;
     })
     .map(element => ({ text: (element.textContent ?? '').trim(), rect: element.getBoundingClientRect().toJSON() })));
   expect(undersizedControls).toEqual([]);
+  const undersizedText = await page.locator('main :is(p, span, small, label, button, input, select, textarea, blockquote):visible').evaluateAll(elements => elements
+    .filter(element => Number.parseFloat(getComputedStyle(element).fontSize) < 16)
+    .map(element => ({ text: (element.textContent ?? '').trim(), size: getComputedStyle(element).fontSize })));
+  expect(undersizedText).toEqual([]);
 });
 
 test('@a11y keyboard shortcuts, entity arrows and the chapter dialog remain operable', async ({ page }) => {
@@ -237,4 +290,22 @@ test('@a11y keyboard shortcuts, entity arrows and the chapter dialog remain oper
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toBeHidden();
+  await expect(page.getByRole('button', { name: /01 — The tide ledger/ }).first()).toBeFocused();
+});
+
+test('@a11y demo focus and mobile tabs keep a visible keyboard path', async ({ page }) => {
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Reset demo' }).focus();
+  await expect(page.getByRole('button', { name: 'Reset demo' })).toHaveCSS('outline-color', 'rgb(255, 253, 247)');
+  await expect(page.getByRole('button', { name: 'Reset demo' })).toHaveCSS('box-shadow', /rgb\(21, 21, 21\)/);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const entities = page.getByRole('tab', { name: 'Entities' });
+  await expect(entities).toHaveAttribute('aria-controls', 'entities-panel');
+  await expect(entities).toHaveAttribute('tabindex', '0');
+  await entities.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: 'Evidence' })).toBeFocused();
+  await expect(page.getByRole('tab', { name: 'Evidence' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('tabpanel', { name: 'Evidence' })).toBeVisible();
 });

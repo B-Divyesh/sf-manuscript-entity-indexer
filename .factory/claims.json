@@ -53,7 +53,7 @@
     "claim": "Imports Markdown, text and DOCX chapters with Latin, Han, Kana and Hangul names.",
     "where": "landing method, empty state, README",
     "test": "npm run test:claims -- --grep @claim:supported-imports",
-    "sandbox": "fresh browser context; import generated Markdown and DOCX files and assert extracted entities"
+    "sandbox": "fresh browser context; import generated Markdown, plain-text and DOCX files and assert extracted entities"
   },
   {
     "id": "source-files-unchanged",

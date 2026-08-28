@@ -14,6 +14,7 @@ let notice = '';
 let error = '';
 let undoSnapshot = '';
 let openDocumentId = '';
+let documentFocusId = '';
 let license: LicenseState = cachedLicenseState();
 
 const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]!);
@@ -26,7 +27,7 @@ const titleFor = (path: string): string => path === '/' ? 'Manuscript Entity Ind
 
 function header(): string {
   return `<header class="site-header">
-    <a class="wordmark route-link" href="/" aria-label="Manuscript Entity Indexer home"><span class="wordmark-mark">MEI</span><span>Manuscript<br>Entity Indexer</span></a>
+    <a class="wordmark route-link" href="/" aria-label="MEI — Manuscript Entity Indexer home"><span class="wordmark-mark">MEI</span><span>Manuscript<br>Entity Indexer</span></a>
     <nav aria-label="Main navigation">
       <a class="route-link" href="/demo">Demo</a>
       <a class="route-link" href="/app">Workbench</a>
@@ -39,7 +40,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>Keep a private continuity ledger beside your manuscript.</p>
     <nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://param.sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav>
-    <p class="folio">v0.1.0 · Original generated still life</p>
+    <p class="folio">v0.1.1 · Original generated still life</p>
   </footer>`;
 }
 
@@ -137,6 +138,7 @@ function demoBanner(): string {
 
 function emptyWorkbench(isDemo: boolean): string {
   return `${isDemo ? demoBanner() : ''}${header()}<main id="main" class="empty-main">
+    ${errorBanner()}
     <section class="empty-sheet"><p class="eyebrow">New index</p><h1 tabindex="-1">Index your manuscript folder</h1><p>Choose Markdown, text or DOCX chapters. The app reads copies and leaves every source file unchanged.</p>
       <div class="empty-actions"><button class="button button-primary" type="button" data-action="choose-folder">Choose manuscript folder</button><a class="button button-paper route-link" href="/demo">Load sample project</a></div>
       <p class="small-note">Free edition: up to three files. Owner edition: unlimited files.</p>
@@ -147,9 +149,13 @@ function emptyWorkbench(isDemo: boolean): string {
   </main>${footer()}`;
 }
 
+function errorBanner(): string {
+  return error ? `<p id="workbench-error" class="error" role="alert" tabindex="-1">${escapeHtml(error)}</p>` : '';
+}
+
 function licensePanel(): string {
   return `<section class="license-panel" aria-labelledby="license-heading"><div><p class="eyebrow">Edition</p><h2 id="license-heading">${escapeHtml(license.message)}</h2><p>Buy once to index folders with more than three files.</p></div>
-    <div class="license-actions"><a class="button button-ink" href="${checkoutUrl}">Buy for $24</a><form id="license-form"><label for="license-token">Have a license?</label><div><input id="license-token" name="license" autocomplete="off"><button type="submit">Verify license</button></div></form>${license.active ? '<button class="text-button" type="button" data-action="remove-license">Remove license</button>' : ''}</div></section>`;
+    <div class="license-actions"><a class="button button-ink" href="${checkoutUrl}">Buy for $24</a><form id="license-form"><label for="license-token">Have a license?</label><div><input id="license-token" name="license" autocomplete="off"${error ? ' aria-describedby="workbench-error" aria-invalid="true"' : ''}><button type="submit">Verify license</button></div></form>${license.active ? '<button class="text-button" type="button" data-action="remove-license">Remove license</button>' : ''}</div></section>`;
 }
 
 function projectWorkbench(isDemo: boolean): string {
@@ -168,18 +174,16 @@ function projectWorkbench(isDemo: boolean): string {
       <input id="folder-input" class="visually-hidden-input" type="file" accept=".md,.markdown,.txt,.docx" multiple webkitdirectory aria-label="Choose manuscript files">
     </div>
     ${notice ? `<p class="notice" role="status">${escapeHtml(notice)}${undoSnapshot ? ' <button type="button" data-action="undo">Undo</button>' : ''}</p>` : ''}
-    ${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ''}
+    ${errorBanner()}
     <div class="mobile-tabs" role="tablist" aria-label="Workbench views">
-      <button role="tab" aria-selected="${activeView === 'entities'}" data-view="entities">Entities</button>
-      <button role="tab" aria-selected="${activeView === 'evidence'}" data-view="evidence">Evidence</button>
-      <button role="tab" aria-selected="${activeView === 'timeline'}" data-view="timeline">Timeline</button>
+      ${(['entities', 'evidence', 'timeline'] as const).map(view => `<button id="${view}-tab" role="tab" aria-selected="${activeView === view}" aria-controls="${view}-panel" tabindex="${activeView === view ? '0' : '-1'}" data-view="${view}">${view[0].toUpperCase()}${view.slice(1)}</button>`).join('')}
     </div>
     <div class="workbench-grid">
-      <section class="entity-rail ${activeView !== 'entities' ? 'mobile-hidden' : ''}" aria-labelledby="entities-heading">
+      <section id="entities-panel" role="tabpanel" aria-labelledby="entities-tab" class="entity-rail ${activeView !== 'entities' ? 'mobile-hidden' : ''}">
         <div class="panel-heading"><h2 id="entities-heading">Entities</h2><span>${visibleEntities.length}</span></div>
         ${visibleEntities.length ? `<div class="entity-list" role="listbox" aria-label="Extracted entities">${visibleEntities.map((entity, index) => `<button type="button" role="option" aria-selected="${entity.id === selected?.id}" data-entity="${entity.id}" data-index="${index}"><span>${escapeHtml(entity.name)}</span><small>${entity.kind} · ${entity.mentionIds.length}</small></button>`).join('')}</div>` : `<div class="panel-empty"><p>No entities match “${escapeHtml(search)}”.</p><button type="button" data-action="clear-search">Clear search</button></div>`}
       </section>
-      <section class="evidence-desk ${activeView !== 'evidence' ? 'mobile-hidden' : ''}" aria-labelledby="evidence-heading">
+      <section id="evidence-panel" role="tabpanel" aria-labelledby="evidence-tab" class="evidence-desk ${activeView !== 'evidence' ? 'mobile-hidden' : ''}">
         <div class="panel-heading"><h2 id="evidence-heading">Evidence</h2><span>${mentions.length} mentions</span></div>
         ${selected ? `<div class="entity-title"><p class="kind-stamp">${escapeHtml(selected.kind)}</p><h3>${escapeHtml(selected.name)}</h3>${selected.aliases.length ? `<p>Also: ${selected.aliases.map(escapeHtml).join(', ')}</p>` : ''}</div>
         ${suggestions.map(suggestion => {
@@ -189,7 +193,7 @@ function projectWorkbench(isDemo: boolean): string {
         }).join('')}
         <ol class="mention-list">${mentions.map((mention, index) => `<li id="mention-${mention.id}"><button type="button" class="chapter-link" data-doc="${mention.documentId}">${String(index + 1).padStart(2, '0')} · ${escapeHtml(mention.documentTitle)}</button><blockquote>${highlight(mention.excerpt, mention.matchedText)}</blockquote></li>`).join('')}</ol>` : '<div class="panel-empty"><p>No entity is selected.</p><p>Choose a name from the entity list.</p></div>'}
       </section>
-      <aside class="ledger-panel ${activeView !== 'timeline' ? 'mobile-hidden' : ''}" aria-labelledby="ledger-heading">
+      <aside id="timeline-panel" role="tabpanel" aria-labelledby="timeline-tab" class="ledger-panel ${activeView !== 'timeline' ? 'mobile-hidden' : ''}">
         <div class="panel-heading"><h2 id="ledger-heading">Ledger</h2><span>Author reviewed</span></div>
         ${selected ? `<form id="entity-form" class="entity-form"><label for="entity-name">Display name</label><input id="entity-name" name="name" value="${escapeHtml(selected.name)}" required><label for="entity-kind">Type</label><select id="entity-kind" name="kind"><option value="person" ${selected.kind === 'person' ? 'selected' : ''}>Person</option><option value="place" ${selected.kind === 'place' ? 'selected' : ''}>Place</option><option value="other" ${selected.kind === 'other' ? 'selected' : ''}>Other</option></select><button type="submit">Save entity</button></form>` : ''}
         <section class="timeline-block" aria-labelledby="timeline-heading"><h3 id="timeline-heading">Timeline</h3>${selected ? `<ol>${project.timeline.filter(entry => entry.entityIds.includes(selected.id)).map(entry => `<li><span>${escapeHtml(entry.marker)}</span><p>${escapeHtml(entry.note)}</p><small>${escapeHtml(entry.documentTitle)}${entry.manual ? ' · your note' : ' · found marker'}</small></li>`).join('') || '<li class="timeline-empty">No time markers for this entity yet.</li>'}</ol><form id="timeline-form"><label for="timeline-note">Add continuity note</label><textarea id="timeline-note" name="note" rows="3" required></textarea><button type="submit">Add timeline note</button></form>` : ''}</section>
@@ -296,13 +300,20 @@ async function fileToDocument(file: File, index: number): Promise<ManuscriptDocu
 
 async function readFiles(files: FileList): Promise<void> {
   try {
-    const supported = [...files].filter(file => /\.(md|markdown|txt|docx)$/i.test(file.name));
-    const documents = (await Promise.all(supported.map(fileToDocument))).filter((doc): doc is ManuscriptDocument => Boolean(doc));
+    const supported = [...files]
+      .filter(file => /\.(md|markdown|txt|docx)$/i.test(file.name))
+      .sort((left, right) => stablePath(left).localeCompare(stablePath(right), 'en', { numeric: true, sensitivity: 'base' }));
+    const documents = (await Promise.all(supported.map(fileToDocument))).filter((doc): doc is ManuscriptDocument => Boolean(doc))
+      .sort((left, right) => left.path.localeCompare(right.path, 'en', { numeric: true, sensitivity: 'base' }));
     useDocuments(documents, supported[0]?.webkitRelativePath.split('/')[0] || 'Selected manuscript');
   } catch (reason) {
     error = reason instanceof Error ? `${reason.message} Choose Markdown, text or DOCX files.` : 'The files could not be read. Choose another folder.';
     render();
   }
+}
+
+function stablePath(file: File): string {
+  return file.webkitRelativePath || file.name;
 }
 
 function useDocuments(documents: ManuscriptDocument[], name: string): void {
@@ -311,10 +322,14 @@ function useDocuments(documents: ManuscriptDocument[], name: string): void {
     render();
     return;
   }
-  const limited = license.active ? documents : documents.slice(0, 3);
+  error = '';
+  const ordered = [...documents].sort((left, right) => left.path.localeCompare(right.path, 'en', { numeric: true, sensitivity: 'base' }));
+  const limited = license.active ? ordered : ordered.slice(0, 3);
   project = indexDocuments(name, limited);
   selectedEntityId = project.entities[0]?.id ?? '';
-  notice = documents.length > limited.length ? `Indexed the first three files. The owner edition can index all ${documents.length}.` : `Indexed ${limited.length} files without changing them.`;
+  notice = ordered.length > limited.length
+    ? `Indexed the first three files in path order: ${limited.map(document => document.path).join(', ')}. Omitted: ${ordered.slice(3).map(document => document.path).join(', ')}. The owner edition can index all ${ordered.length}.`
+    : `Indexed ${limited.length} files without changing them.`;
   saveProject(project, false);
   if (location.pathname !== '/app') history.replaceState({}, '', '/app');
   render();
@@ -348,8 +363,22 @@ function bindPage(): void {
   folder?.addEventListener('change', () => { if (folder.files) void readFiles(folder.files); });
   const searchInput = document.querySelector<HTMLInputElement>('#index-search');
   searchInput?.addEventListener('input', () => { search = searchInput.value; render(); document.querySelector<HTMLInputElement>('#index-search')?.focus(); });
-  document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach(button => button.addEventListener('click', () => { activeView = button.dataset.view as typeof activeView; render(); }));
-  document.querySelectorAll<HTMLButtonElement>('[data-doc]').forEach(button => button.addEventListener('click', () => { openDocumentId = button.dataset.doc!; render(); }));
+  document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach(button => {
+    const activate = () => { activeView = button.dataset.view as typeof activeView; render(); };
+    button.addEventListener('click', activate);
+    button.addEventListener('keydown', event => {
+      const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-view]')];
+      const at = tabs.indexOf(button);
+      const offset = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0;
+      const destination = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : offset ? (at + offset + tabs.length) % tabs.length : -1;
+      if (destination < 0) return;
+      event.preventDefault();
+      activeView = tabs[destination].dataset.view as typeof activeView;
+      render();
+      requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(`[data-view="${activeView}"]`)?.focus());
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>('[data-doc]').forEach(button => button.addEventListener('click', () => { openDocumentId = button.dataset.doc!; documentFocusId = openDocumentId; render(); }));
   document.querySelectorAll<HTMLButtonElement>('[data-entity]').forEach(button => {
     button.addEventListener('click', () => { selectedEntityId = button.dataset.entity!; if (innerWidth < 760) activeView = 'evidence'; render(); });
     button.addEventListener('keydown', event => {
@@ -394,12 +423,19 @@ function bindPage(): void {
     event.preventDefault();
     const token = String(new FormData(event.currentTarget as HTMLFormElement).get('license')).trim();
     if (!token) { error = 'No license was entered. Paste the full token and try again.'; render(); return; }
+    error = '';
     storeLicense(token); license = { active: false, checking: true, message: 'Checking license' }; render();
     license = await verifyLicense(); render();
   });
   const dialog = document.querySelector<HTMLDialogElement>('#document-dialog');
   if (dialog && !dialog.open) dialog.showModal();
-  dialog?.addEventListener('close', () => { openDocumentId = ''; });
+  dialog?.addEventListener('close', () => {
+    const focusId = documentFocusId;
+    openDocumentId = '';
+    documentFocusId = '';
+    render();
+    requestAnimationFrame(() => [...document.querySelectorAll<HTMLButtonElement>('[data-doc]')].find(button => button.dataset.doc === focusId)?.focus());
+  });
 }
 
 function handleAction(action: string): void {
@@ -409,7 +445,7 @@ function handleAction(action: string): void {
   if (action === 'clear-search') { search = ''; render(); }
   if (action === 'undo' && undoSnapshot) { project = JSON.parse(undoSnapshot) as Project; undoSnapshot = ''; notice = 'Restored the separate names.'; saveCurrent(); render(); }
   if (action === 'remove-license') { removeLicense(); license = cachedLicenseState(); notice = 'Removed the license from this device.'; render(); }
-  if (action === 'close-document') { document.querySelector<HTMLDialogElement>('#document-dialog')?.close(); openDocumentId = ''; }
+  if (action === 'close-document') document.querySelector<HTMLDialogElement>('#document-dialog')?.close();
   if (action === 'clear-project' && confirm('Clear this local index? Your manuscript files will not change.')) {
     clearProject(); project = null; selectedEntityId = ''; notice = ''; error = ''; render();
   }
