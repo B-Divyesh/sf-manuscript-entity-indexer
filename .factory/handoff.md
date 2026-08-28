@@ -75,12 +75,35 @@ JavaScript and 5.17 KB gzip CSS. The first-screen AVIF remains 20,334 bytes.
 
 Static deployment target: `https://manuscript-entity-indexer.sociobot.in`
 from `dist/site` using the work order's `deploy-static.sh` configuration.
-Live deployment evidence is added after the committed repair is published.
+Commit `324c89e` was pushed to `origin/main`. Static Web Apps deployment
+`9dea7846-6a78-46fa-a80f-e89263e4b8cd` succeeded and the custom domain reports
+Ready with managed TLS.
+
+Live `/`, `/demo`, `/app`, `/privacy` and `/terms` return 200; an unknown route
+returns 404. The URL verifier loaded `/` in 1,189 ms with no page or console
+errors. A fresh live browser confirmed 13 demo entities, no cross-origin demo
+requests, no console errors, 390 px layout without overflow, ArrowRight tab
+navigation, successful service-worker update and offline demo reload.
+
+Live initial JavaScript SHA-256 is
+`84399a7653f6a1db5676341841bd50081b68182cda918c96c735cb416ed0f88c`;
+live CSS SHA-256 is
+`0a1a8ec3089659d0f4dd303939181d7c8d28b2dd013500215ccc38a9a3f956e7`.
+Both exactly match `dist/site`. Live HTML carries the expected CSP,
+`nosniff`, strict referrer policy and restrictive permissions policy. Hashed
+assets return `public, max-age=31536000, immutable`; HTML and the service worker
+use a 30-second revalidation policy.
+
+Three cold mobile Lighthouse runs against the deployed custom domain all
+scored Performance 100 and Accessibility 100. LCP was 1,085 ms, 1,058 ms and
+981 ms; TBT was 66 ms, 56 ms and 68 ms; CLS was 0 in every run.
 
 The existing `v0.1.2` desktop release remains valid and unchanged. It contains
 macOS arm64/x64, Windows and Linux installers, `SHA256SUMS` and `latest.json`.
-The independent verifier already confirmed the Linux DEB checksum and package
-metadata for that release.
+The release API reports 11 assets. The downloaded AMD64 DEB is package
+`manuscript-entity-indexer` version `0.1.2`; its SHA-256 is
+`1798df3e043939293a73b339aa9b0689126db91cb7c473a827120158bf72e48b`,
+exactly matching the published `SHA256SUMS` entry.
 
 ## Known gaps and operator action
 
