@@ -1,113 +1,81 @@
-# Repair handoff — work order manuscript-entity-indexer-repair-3
+# Verification handoff — manuscript-entity-indexer-verify-4
 
-## Status
+## Status: FAIL
 
-The release-blocking finding in `.factory/verification-3.md` is repaired. The
-verifier measured mobile Lighthouse Performance 89 and 80, with up to 722 ms
-total blocking time, on candidate `6da40d35dfd697fc3a1a326df73bafea45785716`.
+Candidate `ad0b3f84b8a4d1dcc249f40546a7c4df7ffbccb7` was independently
+verified on 28 August 2026 against
+<https://manuscript-entity-indexer.sociobot.in>. The earlier live mobile
+performance failure is repaired: three cold mobile Lighthouse runs scored
+97, 98, and 100 Performance, all with 100 Accessibility. The live static site
+matches the candidate production build byte for byte.
 
-Profiling the candidate showed that `/` fetched and evaluated the complete
-37.39 KB workbench bundle. Lighthouse reported 21.9 KB of unused JavaScript on
-that route, including the indexer, sample project, storage and license paths.
-This unnecessary startup work was the controllable source of score variance.
+The candidate is still **not releasable**. Full evidence and reproduction steps
+are in `.factory/verification-4.md`.
 
-## Repair
+## Release blockers
 
-- The complete first landing screen now ships in `index.html`. It is readable
-  before JavaScript runs and preserves the existing copy, design and semantics.
-- `src/bootstrap.ts` loads only the stylesheet and download resolver on `/`.
-  The workbench module loads after a user chooses Demo, Workbench or another
-  internal route. History navigation and route focus behavior remain intact.
-- GitHub release lookup moved to `src/downloads.ts`, so platform selection
-  remains available without importing the workbench.
-- Service-worker registration remains available on every web route and is
-  excluded from Tauri as before.
-- The exact regression test asserts that the landing route does not request the
-  generated `main-*` workbench chunk and transfers no more than 10 KB of
-  JavaScript. The built bootstrap is 4.13 KB raw and 2.03 KB gzip.
+1. The advertised owner-edition checkout returns HTTP 404
+   `{"error":"enabled factory product","status":404}`.
+2. A `?license=` checkout return stores and strips the token but stays in Free
+   edition and sends no verification request until another load.
+3. The unchanged `mei-shell-v1` cache-first service worker keeps previously
+   cached HTML indefinitely; `registration.update()` does not refresh it.
+4. CJK place matches are not deduplicated. The sample reports five mentions for
+   three `白港` occurrences and two for one `赤橋` occurrence.
+5. User-facing claims about classify/search, desktop persistence and payment
+   privacy, and all-platform builds are absent from or incompletely exercised
+   by `.factory/claims.json`.
+6. Published `v0.1.2` desktop installers target ancestor commit `4eb4bc1`, not
+   this candidate, despite later runtime changes.
 
-No brief, visual-system, product behavior, claim, price, release asset or
-installer workflow changed.
+The footer's `https://param.sociobot.in` link also fails DNS resolution (P2),
+and the Apple touch icon is 256×256 rather than the specified 180×180 (P3).
 
-## Verification evidence
+## Passing evidence
 
-Run from a clean `npm ci` on 28 August 2026:
+- All 13 claim commands passed individually after `npm ci`.
+- `npm test`: 4 Vitest and 21 Playwright tests passed.
+- Typecheck, lint, exact site build, desktop webview build, focused Axe tests,
+  both npm audits, and locked Rust tests passed.
+- Cold first-read and one-click demo requirements pass on desktop and 390 px.
+- Normal, invalid, boundary, recovery, keyboard, focus, reduced-motion,
+  offline-reload, privacy, and local-storage flows were exercised locally and
+  live. Normal routes had no console/page errors or serious/critical Axe issue.
+- Initial JS is 2,026 bytes gzip; all JS is 27,791 bytes gzip; CSS is 5,174
+  bytes gzip; mobile hero AVIF is 20,334 bytes.
+- Live policy and caching headers pass. The verification endpoint rate limit
+  starts at request 31 of a 45-request burst and returns `Retry-After: 4`.
+- Release assets exist for macOS arm64/x64, Windows, and Linux. The downloaded
+  AMD64 DEB metadata and checksum pass, and the Linux installer verifies the
+  AppImage before installation.
 
-```text
-npm test                                      PASS — 4 Vitest + 21 Playwright
-npm run typecheck                             PASS
-npm run lint                                  PASS
-npm run build                                 PASS — dist/site produced
-npm run build:app                             PASS — dist/app produced
-npm run test:a11y                             PASS — 4 tests; no serious/critical Axe findings
-npm audit --omit=dev                          PASS — 0 vulnerabilities
-npm audit                                     PASS — 0 vulnerabilities
+## Commands used
+
+```sh
+npm ci
+npm test
+npm run typecheck
+npm run lint
+npm run build
+npm run build:app
+npm run test:a11y
+npm audit --omit=dev
+npm audit
 cargo test --locked --manifest-path src-tauri/Cargo.toml
-                                              PASS — 2 Rust tests + doc tests
 ```
 
-Every command in `.factory/claims.json` was also invoked separately from a
-fresh browser state: all 13 claims passed. This includes demo isolation,
-same-origin privacy, offline reload and service-worker use, CSV export, alias
-merge/undo, timeline notes, chapter evidence, all supported imports, unchanged
-source files, file limits, local storage, recorded license verification and
-recorded GitHub release selection.
+Every `test` value in `.factory/claims.json` was also invoked separately.
+Ephemeral screenshots, Lighthouse reports, release files, and URL-verifier
+output are retained in `/work/evidence/verify-4/`.
 
-`/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/` passed in 844 ms with
-`lang=en`, one `h1`, one `main`, labelled controls, image alt text and no console
-errors. Desktop and 390×844 browser coverage passed, including reduced motion,
-no horizontal overflow, 44 px targets, 16 px mobile workbench text, keyboard
-shortcuts, roving tabs and dialog focus restoration.
+## Next steps
 
-Three cold local mobile Lighthouse runs after the repair:
+Enable/register the Sociobot product and test a real checkout return. Reorder
+license capture/state initialization and add a return-path claim test. Version
+the service-worker cache or use a network-first/update strategy for navigations,
+with an upgrade regression test. Deduplicate candidates by document, position,
+and normalized name. Complete the claims ledger and platform variants. Cut a
+new release from the repaired candidate, then rerun independent verification.
 
-| Run | Performance | Accessibility | LCP | TBT | CLS |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| 1 | 100 | 100 | 1,281 ms | 0 ms | 0 |
-| 2 | 100 | 100 | 1,285 ms | 0 ms | 0 |
-| 3 | 100 | 100 | 1,367 ms | 48 ms | 0 |
-
-Reports and URL-check output are retained under
-`/work/evidence/repair-3/`. The production build has 2.03 KB gzip initial
-JavaScript and 5.17 KB gzip CSS. The first-screen AVIF remains 20,334 bytes.
-
-## Release and deployment
-
-Static deployment target: `https://manuscript-entity-indexer.sociobot.in`
-from `dist/site` using the work order's `deploy-static.sh` configuration.
-Commit `324c89e` was pushed to `origin/main`. Static Web Apps deployment
-`9dea7846-6a78-46fa-a80f-e89263e4b8cd` succeeded and the custom domain reports
-Ready with managed TLS.
-
-Live `/`, `/demo`, `/app`, `/privacy` and `/terms` return 200; an unknown route
-returns 404. The URL verifier loaded `/` in 1,189 ms with no page or console
-errors. A fresh live browser confirmed 13 demo entities, no cross-origin demo
-requests, no console errors, 390 px layout without overflow, ArrowRight tab
-navigation, successful service-worker update and offline demo reload.
-
-Live initial JavaScript SHA-256 is
-`84399a7653f6a1db5676341841bd50081b68182cda918c96c735cb416ed0f88c`;
-live CSS SHA-256 is
-`0a1a8ec3089659d0f4dd303939181d7c8d28b2dd013500215ccc38a9a3f956e7`.
-Both exactly match `dist/site`. Live HTML carries the expected CSP,
-`nosniff`, strict referrer policy and restrictive permissions policy. Hashed
-assets return `public, max-age=31536000, immutable`; HTML and the service worker
-use a 30-second revalidation policy.
-
-Three cold mobile Lighthouse runs against the deployed custom domain all
-scored Performance 100 and Accessibility 100. LCP was 1,085 ms, 1,058 ms and
-981 ms; TBT was 66 ms, 56 ms and 68 ms; CLS was 0 in every run.
-
-The existing `v0.1.2` desktop release remains valid and unchanged. It contains
-macOS arm64/x64, Windows and Linux installers, `SHA256SUMS` and `latest.json`.
-The release API reports 11 assets. The downloaded AMD64 DEB is package
-`manuscript-entity-indexer` version `0.1.2`; its SHA-256 is
-`1798df3e043939293a73b339aa9b0689126db91cb7c473a827120158bf72e48b`,
-exactly matching the published `SHA256SUMS` entry.
-
-## Known gaps and operator action
-
-No product gap remains from verification 3. Desktop builds are unsigned.
-macOS signing requires `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`,
-`APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, and `APPLE_TEAM_ID`.
-Windows signing requires `WINDOWS_CERT_PFX` and `WINDOWS_CERT_PASSWORD`.
+Desktop builds remain unsigned. Operator signing still requires the Apple and
+Windows certificate secrets listed in the release workflow documentation.
