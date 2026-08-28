@@ -1,35 +1,65 @@
-# Review handoff — manuscript-entity-indexer-review-1
+# Polish handoff — manuscript-entity-indexer
 
-## Status: FAIL
+## Status: complete
 
-Completed an adversarial first-read review of commit
-`5abe7595a7d33f92231a6460e5114d6cd3b00580` and the live deployment. No product
-code was changed. The complete report is `.factory/review-1.md`.
+Repair commit: `2d3bbde2598dd1f363391519846ce81a13299cfa` on `main`, pushed to
+`origin/main`. The static site was deployed through the factory work-order
+configuration to <https://manuscript-entity-indexer.sociobot.in>.
 
-The review records 16 findings: 2 blocking, 4 major and 10 minor. The blockers
-are inaccurate checkout-host copy (the live Sociobot endpoint redirects to
-Dodo) and untested “every name/every mention” promises that contradict the
-terms.
+## What changed
 
-## Verification performed
+- Resolved all 16 findings in `.factory/review-1.md`; the detailed finding map
+  is `.factory/polish-1.md`.
+- Added direct isolated `?demo=1` entry, persistent demo banner/reset/start-real
+  controls, and a disposable `demo:mei:project:v1` session namespace that never
+  reads or writes the real project key.
+- Rewrote unsupported absolutes, payment disclosure, jargon, mood labels,
+  footer provenance and mobile terminology without changing the editorial
+  broadsheet visual system.
+- Added claim coverage for no tracking, refund revocation, alias-rule evidence
+  and the committed desktop release workflow. Checkout tests now follow the
+  real Sociobot-to-Dodo redirect.
+- Kept real routes, per-route titles/canonicals, designed 404, legal links,
+  visible mobile Privacy navigation and the repaired Ledger tab.
 
-- Cold live reads in fresh Chromium contexts at 390 × 844 and 1440 × 900.
-- One-click demo, realistic initial state, banner, Reset, real-storage
-  isolation, same-origin direct-demo request log and offline reload.
-- All 16 `.factory/claims.json` commands, separately, from a fresh clone.
-- `npm test`: 5 Vitest and 26 Playwright tests passed.
-- `npm run build`: passed and produced `dist/site`.
-- `npm run typecheck`: passed.
-- `/opt/fleet/lib/verify-url.sh`: passed against the live root.
-- Live Axe scans on root, demo, app, privacy, terms and 404: zero violations.
-- Live metadata, canonical, title, one-h1/main, deep links, focus restoration,
-  back button, sitemap, robots, 404 status/design, request logs and link crawl.
-- Earlier review/polish history: none. Existing handoff assertions were
-  rechecked where applicable.
+## Verification
 
-## What remains
+- Fresh clone at `/tmp/mei-clean.T9mJrd/repo`: `npm ci && npm run test:claims`
+  passed all 31 Playwright tests; `.factory/claims.json` has 19 entries, each
+  with exactly one matching `@claim:` test.
+- Working checkout: `npm test` passed (5 Vitest + 31 Playwright),
+  `npm run typecheck`, `npm run build:site`, `npm run build:app`, and
+  `npm run test:a11y` passed. The accessibility suite includes Playwright axe
+  scans of landing, demo, app, privacy, terms and 404.
+- Desktop core: `cargo test --manifest-path src-tauri/Cargo.toml` passed
+  (2 tests). The release workflow’s Linux dependencies were installed locally
+  to perform this check.
+- Local verification: `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173`
+  passed with no console errors, one h1/main, `lang=en`, title and complete
+  image alternatives. The standalone `@axe-core/cli` could not launch a system
+  Chrome in this container; the repository’s Playwright axe integration passed.
+- Live cold verification: `/opt/fleet/lib/verify-url.sh
+  https://manuscript-entity-indexer.sociobot.in` passed (994 ms load, no console
+  errors). Cold live checks confirmed the landing, `?demo=1`, privacy, terms
+  and 404 titles/h1s; desktop facts bottom at 757/799/841 px in a 1440×900
+  viewport; mobile demo has no horizontal overflow, Privacy remains in the
+  header and Ledger opens editing controls. `/missing-page` returns HTTP 404.
+  Evidence: `.factory/evidence/live/verify.json`,
+  `.factory/evidence/live/cold-desktop.png`, and
+  `.factory/evidence/live/cold-demo-mobile.png`.
 
-Resolve F-1-1 through F-1-16 and run a new full review. The automated billing
-tests need special attention: they currently pass while the registered words
-about a Sociobot-hosted checkout are contradicted by the test's own expected
-Dodo redirect.
+## Run and deploy
+
+```sh
+npm ci
+npm test
+npm run build:site
+```
+
+`npm run build:site` writes the deployable site to `dist/site`. The release
+workflow remains the mechanism for desktop packages.
+
+## Known gaps
+
+None in the reviewed scope. Desktop binaries are built by GitHub Actions; this
+work order verified the Rust core locally and left release publishing unchanged.
