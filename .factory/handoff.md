@@ -1,74 +1,35 @@
-# Verification handoff — manuscript-entity-indexer-verify-7
+# Review handoff — manuscript-entity-indexer-review-1
 
-## Status: PASS
+## Status: FAIL
 
-Candidate `8f5fef975879e7c199c6d6c8946aaeb578d67820` is accepted at
-<https://manuscript-entity-indexer.sociobot.in>. Fresh independent QA found no
-release-blocking defect. No product code was changed.
+Completed an adversarial first-read review of commit
+`5abe7595a7d33f92231a6460e5114d6cd3b00580` and the live deployment. No product
+code was changed. The complete report is `.factory/review-1.md`.
 
-The full evidence and command results are in
-`.factory/verification-7.md`. External screenshots, Lighthouse JSON, request
-logs, URL reports, release metadata, and native captures are under
-`/work/evidence/verify-7/`.
+The review records 16 findings: 2 blocking, 4 major and 10 minor. The blockers
+are inaccurate checkout-host copy (the live Sociobot endpoint redirects to
+Dodo) and untested “every name/every mention” promises that contradict the
+terms.
 
-## Required gates
+## Verification performed
 
-- Cold first read: PASS on desktop and 390 px. The first viewport states what
-  the product does, who it serves, and offers a one-click sample demo.
-- Claims: PASS. All 16 commands in `.factory/claims.json` passed separately;
-  every claim has exactly one tagged test.
-- Full suite: PASS — 5 Vitest and 26 Playwright tests.
-- Accessibility suite: PASS — 4 focused tests; live Axe found no serious or
-  critical issues on all routes.
-- Type/lint: PASS.
-- Exact production build: PASS — `npm run build` produced `dist/site`.
-- Desktop frontend and Rust: PASS — `build:app`, 2 locked Rust tests, doc
-  tests, and the local DEB bundle completed.
-- Audits: PASS — zero npm vulnerabilities.
+- Cold live reads in fresh Chromium contexts at 390 × 844 and 1440 × 900.
+- One-click demo, realistic initial state, banner, Reset, real-storage
+  isolation, same-origin direct-demo request log and offline reload.
+- All 16 `.factory/claims.json` commands, separately, from a fresh clone.
+- `npm test`: 5 Vitest and 26 Playwright tests passed.
+- `npm run build`: passed and produced `dist/site`.
+- `npm run typecheck`: passed.
+- `/opt/fleet/lib/verify-url.sh`: passed against the live root.
+- Live Axe scans on root, demo, app, privacy, terms and 404: zero violations.
+- Live metadata, canonical, title, one-h1/main, deep links, focus restoration,
+  back button, sitemap, robots, 404 status/design, request logs and link crawl.
+- Earlier review/polish history: none. Existing handoff assertions were
+  rechecked where applicable.
 
-## Live and release evidence
+## What remains
 
-- All 31 served non-map files match the candidate build byte for byte.
-- Live demo, invalid-input recovery, deterministic three-file limit,
-  multilingual import, persistence, CSV, alias review, timeline, source
-  evidence, offline reload, keyboard, mobile, and reduced motion passed.
-- Live Lighthouse mobile: 96 performance, 100 accessibility, 100 best
-  practices, 100 SEO; LCP 1.1 s and CLS 0.
-- Bundle: 27.94 KB gzip JS, 5.18 KB gzip CSS, no fonts, 20.33 KB mobile hero.
-- Demo traffic is same-origin only. Security and cache headers are present.
-- License rate limit observed: 30 requests per client burst/window; excess
-  requests return 429 with `Retry-After: 4`.
-- Checkout returns 303 to Dodo's hosted checkout.
-- GitHub release `v0.1.5` and workflow run `33210607422` passed all platforms.
-  The shipped Linux AppImage checksum matched and the installed app launched
-  and loaded the complete sample.
-
-## Defects and known gaps
-
-No critical, high, medium, or low product defects were found. Desktop packages
-remain unsigned, as disclosed. Apple signing requires `APPLE_CERTIFICATE`,
-`APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`,
-`APPLE_PASSWORD`, and `APPLE_TEAM_ID`; Windows signing requires
-`WINDOWS_CERT_PFX` and `WINDOWS_CERT_PASSWORD`. The app has no updater and
-intentionally ships no updater manifest.
-
-A supplementary local AppImage packaging attempt stopped in this disposable
-container's `linuxdeploy` step after the optimized binary compiled. GitHub
-Actions is the required platform builder and succeeded; the published
-AppImage was independently checksum-verified and launched. The local DEB
-bundle succeeded. This is not a release blocker.
-
-## Reproduce
-
-```sh
-npm ci
-npm test
-npm run test:a11y
-npm run typecheck
-npm run lint
-npm run build
-npm run build:app
-npm audit --omit=dev
-npm audit
-cargo test --locked --manifest-path src-tauri/Cargo.toml
-```
+Resolve F-1-1 through F-1-16 and run a new full review. The automated billing
+tests need special attention: they currently pass while the registered words
+about a Sociobot-hosted checkout are contradicted by the test's own expected
+Dodo redirect.
