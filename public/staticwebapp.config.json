@@ -9,10 +9,6 @@
       "headers": { "Cache-Control": "public, max-age=86400" }
     }
   ],
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/*.{svg,png,webp,xml,txt,json,js,css}"]
-  },
   "responseOverrides": {
     "404": {
       "rewrite": "/404.html",

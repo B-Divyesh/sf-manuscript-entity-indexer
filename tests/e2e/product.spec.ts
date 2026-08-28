@@ -187,12 +187,12 @@ test('@claim:platform-download selects a current installer for the visitor', asy
   await page.route('https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
-    body: JSON.stringify([{ tag_name: 'v0.1.1', assets: [{ name: 'Manuscript.Entity.Indexer_0.1.1_amd64.AppImage', browser_download_url: 'https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.1/Manuscript.Entity.Indexer_0.1.1_amd64.AppImage' }] }])
+    body: JSON.stringify([{ tag_name: 'v0.1.2', assets: [{ name: 'Manuscript.Entity.Indexer_0.1.2_amd64.AppImage', browser_download_url: 'https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.2/Manuscript.Entity.Indexer_0.1.2_amd64.AppImage' }] }])
   }));
   await page.goto('/');
   const download = page.getByRole('link', { name: 'Download for Linux' });
   await expect(download).toBeVisible();
-  await expect(download).toHaveAttribute('href', /v0\.1\.1\/Manuscript\.Entity\.Indexer_0\.1\.1_amd64\.AppImage$/);
+  await expect(download).toHaveAttribute('href', /v0\.1\.2\/Manuscript\.Entity\.Indexer_0\.1\.2_amd64\.AppImage$/);
 });
 
 test('@regression static shell links its manifest and returns the designed 404 with a 404 status in Static Web Apps', async ({ page }) => {

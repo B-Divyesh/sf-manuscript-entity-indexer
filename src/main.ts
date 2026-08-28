@@ -40,7 +40,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>Keep a private continuity ledger beside your manuscript.</p>
     <nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://param.sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav>
-    <p class="folio">v0.1.1 · Original generated still life</p>
+    <p class="folio">v0.1.2 · Original generated still life</p>
   </footer>`;
 }
 

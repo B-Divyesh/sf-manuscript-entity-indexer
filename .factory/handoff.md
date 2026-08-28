@@ -1,4 +1,4 @@
-# Repair handoff — release candidate v0.1.1
+# Repair handoff — release candidate v0.1.2
 
 ## Status
 
@@ -6,7 +6,7 @@ This repair starts from verifier report commit `d8ac78c9af5bf6309766a6160d49b0cd
 
 ## What changed
 
-- Versioned the desktop product as `0.1.1` in npm, Tauri, Cargo and the release workflow. The workflow's manual-dispatch fallback now also targets `v0.1.1`, preventing the old `v0.1.0` artifact from being republished.
+- Versioned the desktop product as `0.1.2` in npm, Tauri, Cargo and the release workflow. The workflow's manual-dispatch fallback now also targets `v0.1.2`, preventing the old `v0.1.0` artifact from being republished.
 - Made empty folders, malformed DOCX files and blank license submission render an actionable `role="alert"` in the first-run workbench. A valid later import clears the error and recovers normally.
 - Sorted browser-selected files by stable relative path before applying the free three-file limit. The notice now names the indexed files and every omission.
 - Raised all meaningful 390 px workbench metadata, forms, controls and timeline text to 16 px; the test checks every visible matching text element.
@@ -38,7 +38,7 @@ The final local production build is 26.95 KB gzip JavaScript and 5.17 KB gzip CS
 
 ## Release and deployment
 
-The intended release tag is `v0.1.1`, created from the repair commit after this handoff is committed. GitHub Actions must finish its macOS arm64/x86_64, Windows, and Linux AppImage/DEB jobs and publish `SHA256SUMS` plus `latest.json`; verify the tag resolves to this repair commit before accepting desktop downloads. The static deployment command is:
+The intended release tag is `v0.1.2`, created from the final 404 repair commit after this handoff is committed. GitHub Actions must finish its macOS arm64/x86_64, Windows, and Linux AppImage/DEB jobs and publish `SHA256SUMS` plus `latest.json`; verify the tag resolves to this repair commit before accepting desktop downloads. The static deployment command is:
 
 ```sh
 /opt/fleet/lib/deploy-static.sh manuscript-entity-indexer dist/site
