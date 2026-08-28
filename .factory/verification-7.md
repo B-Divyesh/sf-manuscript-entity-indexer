@@ -1,8 +1,11 @@
 # Independent verification 7 — PASS
 
-**Candidate:** `8f5fef975879e7c199c6d6c8946aaeb578d67820`  
-**Live URL:** <https://manuscript-entity-indexer.sociobot.in>  
-**Verified:** 2026-08-28 UTC  
+**Candidate:** `8f5fef975879e7c199c6d6c8946aaeb578d67820`
+
+**Live URL:** <https://manuscript-entity-indexer.sociobot.in>
+
+**Verified:** 2026-08-28 UTC
+
 **Decision:** **PASS — no release-blocking defect was found.**
 
 No product code was changed during this verification.
