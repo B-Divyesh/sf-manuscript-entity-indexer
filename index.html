@@ -23,8 +23,84 @@
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <div id="app"></div>
+    <div id="app">
+      <header class="site-header">
+        <a class="wordmark route-link" href="/" aria-label="MEI — Manuscript Entity Indexer home"><span class="wordmark-mark">MEI</span><span>Manuscript<br>Entity Indexer</span></a>
+        <nav aria-label="Main navigation">
+          <a class="route-link" href="/demo">Demo</a>
+          <a class="route-link" href="/app">Workbench</a>
+          <a class="route-link" href="/privacy">Privacy</a>
+        </nav>
+      </header>
+      <main id="main">
+        <section class="hero-section">
+          <div class="edition-line"><span>No. 01</span><span>Offline author’s desk</span><span>2026</span></div>
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <p class="eyebrow">A continuity ledger for long drafts</p>
+              <h1 tabindex="-1">Index every name across your manuscript</h1>
+              <p class="dek">For novelists working across languages who need one private place to check characters, places and aliases.</p>
+              <div class="hero-actions">
+                <a class="button button-primary route-link" href="/demo">Try it with sample data</a>
+                <span>It opens a three-chapter index.</span>
+              </div>
+              <ul class="plain-facts" aria-label="Product facts">
+                <li><span aria-hidden="true">01</span>Your drafts stay on this device.</li>
+                <li><span aria-hidden="true">02</span>Works after the first visit without internet.</li>
+                <li><span aria-hidden="true">03</span>$24 once removes the three-file limit.</li>
+              </ul>
+            </div>
+            <figure class="hero-art">
+              <picture><source type="image/avif" srcset="/broadsheet-ledger-800.avif 800w, /broadsheet-ledger.avif 1200w" sizes="(max-width: 980px) 94vw, 54vw"><source type="image/webp" srcset="/broadsheet-ledger-800.webp 800w, /broadsheet-ledger.webp 1200w" sizes="(max-width: 980px) 94vw, 54vw"><img src="/broadsheet-ledger.jpg" width="1200" height="800" alt="Manuscript sheets linked by thread to a black index ledger." fetchpriority="high" decoding="async"></picture>
+              <figcaption>Repeated mentions become one author-reviewed ledger.</figcaption>
+            </figure>
+          </div>
+        </section>
+        <section class="preview-section" aria-labelledby="preview-heading">
+          <div class="section-kicker"><span>On the desk</span><span>Live preview</span></div>
+          <h2 id="preview-heading">See every mention before you merge it</h2>
+          <div class="paper-preview">
+            <div class="preview-list" aria-label="Example entity list"><p class="utility-label">Entities · 8</p><p class="preview-active"><strong>Mara Venn</strong><span>5 mentions</span></p><p><strong>Captain Venn</strong><span>3 mentions</span></p><p><strong>林梅</strong><span>3 mentions</span></p></div>
+            <article class="preview-evidence"><p class="utility-label">Evidence · 01 — The tide ledger</p><blockquote>At dusk, <mark>Mara Venn</mark> stepped off the ferry at Glass Harbor.</blockquote><p class="suggestion"><span>Suggested alias</span> Captain Venn · Both names include “Venn”.</p></article>
+            <aside class="preview-ledger"><p class="utility-label">Ledger</p><p><span>Type</span><strong>Person</strong></p><p><span>Aliases</span><strong>1 to review</strong></p><p><span>Chapters</span><strong>3</strong></p></aside>
+          </div>
+        </section>
+        <section class="walkthrough-section" aria-labelledby="walkthrough-heading">
+          <div class="section-kicker"><span>Sample project</span><span>Three views</span></div>
+          <h2 id="walkthrough-heading">Follow a name back to its chapter</h2>
+          <div class="walkthrough-grid">
+            <figure><img src="/walkthrough/index.webp" width="900" height="1563" loading="lazy" decoding="async" alt="The sample workbench lists entities beside their manuscript evidence and ledger."><figcaption><span>01</span>Start with extracted names and the lines where they appear.</figcaption></figure>
+            <figure><img src="/walkthrough/alias.webp" width="900" height="1563" loading="lazy" decoding="async" alt="The workbench shows Captain Venn merged into Mara Venn as an alias."><figcaption><span>02</span>Merge a suggested alias only after checking its evidence.</figcaption></figure>
+            <figure><img src="/walkthrough/source.webp" width="760" height="450" loading="lazy" decoding="async" alt="A chapter copy opens above the workbench for source checking."><figcaption><span>03</span>Open the chapter copy without changing the source file.</figcaption></figure>
+          </div>
+        </section>
+        <section class="steps-section" aria-labelledby="steps-heading">
+          <div class="section-kicker"><span>Method</span><span>Three passes</span></div>
+          <h2 id="steps-heading">Build the ledger in three steps</h2>
+          <ol class="editorial-steps">
+            <li><span>1</span><div><h3>Choose your manuscript folder</h3><p>Open Markdown, text and DOCX chapters. Source files stay unchanged.</p></div></li>
+            <li><span>2</span><div><h3>Review marked names</h3><p>Check Unicode-aware candidates. Accept or reject each alias suggestion.</p></div></li>
+            <li><span>3</span><div><h3>Check story continuity</h3><p>Search evidence by chapter. Add timeline notes and export the ledger.</p></div></li>
+          </ol>
+        </section>
+        <section class="privacy-section" aria-labelledby="boundaries-heading">
+          <div><p class="eyebrow">The quiet margin</p><h2 id="boundaries-heading">What never happens to your draft</h2></div>
+          <ul><li>No manuscript upload.</li><li>No source-file changes.</li></ul>
+          <p>The index uses small, visible rules. You decide which names belong together.</p>
+        </section>
+        <section class="price-section" aria-labelledby="price-heading">
+          <div><p class="eyebrow">Owner edition</p><h2 id="price-heading">Index folders with more than three files</h2><p>Free indexes three files at a time. The owner edition removes that limit.</p></div>
+          <div class="price-ticket"><p><span class="price">$24</span> one time</p><a class="button button-primary" href="https://api.sociobot.in/api/v1/products/manuscript-entity-indexer/checkout">Buy the owner edition</a><p>Sociobot is the merchant of record. Refunds revoke the license.</p></div>
+          <div class="download-block" id="download-block"><p class="utility-label">Desktop app · unsigned preview</p><a class="button button-ink" href="https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases">Downloads are being published</a><p>macOS, Windows and Linux builds appear on the release page.</p></div>
+        </section>
+      </main>
+      <footer class="site-footer">
+        <p>Keep a private continuity ledger beside your manuscript.</p>
+        <nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://param.sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav>
+        <p class="folio">v0.1.2 · Original generated still life</p>
+      </footer>
+    </div>
     <div id="route-status" class="sr-only" aria-live="polite"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/bootstrap.ts"></script>
   </body>
 </html>

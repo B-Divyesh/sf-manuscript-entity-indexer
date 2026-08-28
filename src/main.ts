@@ -1,9 +1,9 @@
-import './style.css';
 import { indexDocuments, mergeEntities } from './indexer';
 import { sampleDocuments } from './sample';
 import { clearProject, downloadText, loadProject, saveProject } from './storage';
 import type { EntityKind, ManuscriptDocument, Project } from './types';
 import { cachedLicenseState, captureLicense, checkoutUrl, removeLicense, storeLicense, verifyLicense, type LicenseState } from './license';
+import { resolveCurrentDownload } from './downloads';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 let project: Project | null = null;
@@ -243,10 +243,10 @@ function render(focusHeading = false): void {
   if (focusHeading) document.querySelector<HTMLHeadingElement>('main h1')?.focus({ preventScroll: true });
   document.querySelector('#route-status')!.textContent = document.title;
   bindPage();
-  if (path === '/') void resolveDownload();
+  if (path === '/') void resolveCurrentDownload();
 }
 
-function navigate(path: string): void {
+export function navigate(path: string): void {
   history.pushState({}, '', path);
   if (path === '/demo') loadDemo();
   else if (path === '/app') project = loadProject();
@@ -451,31 +451,6 @@ function handleAction(action: string): void {
   }
 }
 
-async function resolveDownload(): Promise<void> {
-  const block = document.querySelector<HTMLElement>('#download-block');
-  if (!block) return;
-  const releasePage = 'https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases';
-  try {
-    const cached = JSON.parse(localStorage.getItem('mei:release:v1') ?? 'null') as { at: number; release: Release } | null;
-    const release = cached && Date.now() - cached.at < 3_600_000 ? cached.release : await fetch('https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1').then(async response => {
-      if (!response.ok) throw new Error('Release service unavailable');
-      const releases = await response.json() as Release[];
-      if (!releases[0]) throw new Error('No release');
-      return releases[0];
-    });
-    if (!cached || cached.release.tag_name !== release.tag_name) localStorage.setItem('mei:release:v1', JSON.stringify({ at: Date.now(), release }));
-    const platform = /Mac/i.test(navigator.platform) ? 'macOS' : /Win/i.test(navigator.platform) ? 'Windows' : 'Linux';
-    const matcher = platform === 'macOS' ? /\.(dmg|app\.tar\.gz)$/i : platform === 'Windows' ? /\.(msi|exe|zip)$/i : /\.(AppImage|deb)$/i;
-    const asset = release.assets.find(item => matcher.test(item.name));
-    if (!asset) throw new Error('Platform asset missing');
-    block.innerHTML = `<p class="utility-label">Desktop app · ${escapeHtml(release.tag_name)}</p><a class="button button-ink" href="${escapeHtml(asset.browser_download_url)}">Download for ${platform}</a><p>Unsigned build · ${escapeHtml(asset.name)} · <a href="${releasePage}">All downloads</a></p>`;
-  } catch {
-    block.innerHTML = `<p class="utility-label">Desktop app · release pending</p><a class="button button-ink" href="${releasePage}">Downloads are being published</a><p>Open the release page for macOS, Windows and Linux builds.</p>`;
-  }
-}
-
-interface Release { tag_name: string; assets: Array<{ name: string; browser_download_url: string }> }
-
 document.addEventListener('keydown', event => {
   if (event.key === '/' && !['INPUT', 'TEXTAREA'].includes((event.target as HTMLElement).tagName)) { event.preventDefault(); document.querySelector<HTMLInputElement>('#index-search')?.focus(); }
 });
@@ -491,4 +466,3 @@ if ('__TAURI_INTERNALS__' in window && new URLSearchParams(location.search).has(
 if (isDemoPath()) loadDemo(); else if (location.pathname === '/app') project = loadProject();
 render();
 if (license.active && !isDemoPath()) void verifyLicense().then(result => { license = result; if (location.pathname === '/app') render(); });
-if ('serviceWorker' in navigator && !('__TAURI_INTERNALS__' in window)) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => undefined));

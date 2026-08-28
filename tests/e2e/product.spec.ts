@@ -195,6 +195,22 @@ test('@claim:platform-download selects a current installer for the visitor', asy
   await expect(download).toHaveAttribute('href', /v0\.1\.2\/Manuscript\.Entity\.Indexer_0\.1\.2_amd64\.AppImage$/);
 });
 
+test('@regression landing startup excludes the workbench and stays below 10 KB of JavaScript', async ({ page }) => {
+  await page.route('https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify([{ tag_name: 'v0.1.2', assets: [] }])
+  }));
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Index every name across your manuscript' })).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  const scripts = await page.evaluate(() => performance.getEntriesByType('resource')
+    .filter(entry => entry.name.endsWith('.js'))
+    .map(entry => ({ name: entry.name, transferSize: (entry as PerformanceResourceTiming).transferSize })));
+  expect(scripts.some(script => /\/assets\/main-[^/]+\.js$/.test(script.name))).toBe(false);
+  expect(scripts.reduce((total, script) => total + script.transferSize, 0)).toBeLessThanOrEqual(10 * 1024);
+});
+
 test('@regression static shell links its manifest and returns the designed 404 with a 404 status in Static Web Apps', async ({ page }) => {
   await page.goto('/missing-page');
   await expect(page.getByRole('heading', { name: 'This clipping is not in the index' })).toBeVisible();
