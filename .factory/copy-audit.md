@@ -11,8 +11,28 @@ No sentence exceeds 22 words. No sentence contains a banned word.
 | Works after the first visit without internet. | 7 | Pass |
 | $24 once removes the three-file limit. | 7 | Pass |
 | Repeated mentions become one author-reviewed ledger. | 6 | Pass |
+| On the desk | 3 | Pass |
+| Sample output | 2 | Pass |
+| See every mention before you merge it | 7 | Pass |
+| Entities · 13 | 2 | Pass |
+| Mara Venn | 2 | Pass |
+| 4 mentions | 2 | Pass |
+| Captain Venn | 2 | Pass |
+| 3 mentions | 2 | Pass |
+| 林梅 | 1 | Pass |
+| 2 mentions | 2 | Pass |
+| Evidence · 01 — The tide ledger | 5 | Pass |
 | At dusk, Mara Venn stepped off the ferry at Glass Harbor. | 11 | Pass |
+| Suggested alias | 2 | Pass |
+| Captain Venn | 2 | Pass |
 | Both names include “Venn”. | 4 | Pass |
+| Ledger | 1 | Pass |
+| Type | 1 | Pass |
+| Person | 1 | Pass |
+| Aliases | 1 | Pass |
+| 1 to review | 3 | Pass |
+| Chapters | 1 | Pass |
+| 3 | 1 | Pass |
 | Start with extracted names and the lines where they appear. | 9 | Pass |
 | Merge a suggested alias only after checking its evidence. | 9 | Pass |
 | Open the chapter copy without changing the source file. | 9 | Pass |

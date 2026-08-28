@@ -17,6 +17,7 @@ let undoSnapshot = '';
 let openDocumentId = '';
 let documentFocusId = '';
 let license: LicenseState = cachedLicenseState();
+const samplePreview = indexDocuments('The Glass Harbor papers', structuredClone(sampleDocuments));
 
 const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]!);
 const titleFor = (path: string): string => path === '/' ? 'Manuscript Entity Indexer — Track story details'
@@ -41,7 +42,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>Keep a private continuity ledger beside your manuscript.</p>
     <nav aria-label="Footer navigation"><a class="route-link" href="/privacy">Privacy</a><a class="route-link" href="/terms">Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav>
-    <p class="folio">v0.1.4 · Original generated still life</p>
+    <p class="folio">v0.1.5 · Original generated still life</p>
   </footer>`;
 }
 
@@ -51,6 +52,10 @@ function facts(): string {
     <li><span aria-hidden="true">02</span>Works after the first visit without internet.</li>
     <li><span aria-hidden="true">03</span>$24 once removes the three-file limit.</li>
   </ul>`;
+}
+
+function sampleMentionCount(name: string): number {
+  return samplePreview.entities.find(entity => entity.name === name)?.mentionIds.length ?? 0;
 }
 
 function landing(): string {
@@ -76,14 +81,14 @@ function landing(): string {
     </section>
 
     <section class="preview-section" aria-labelledby="preview-heading">
-      <div class="section-kicker"><span>On the desk</span><span>Live preview</span></div>
+      <div class="section-kicker"><span>On the desk</span><span>Sample output</span></div>
       <h2 id="preview-heading">See every mention before you merge it</h2>
       <div class="paper-preview">
-        <div class="preview-list" aria-label="Example entity list">
-          <p class="utility-label">Entities · 8</p>
-          <p class="preview-active"><strong>Mara Venn</strong><span>5 mentions</span></p>
-          <p><strong>Captain Venn</strong><span>3 mentions</span></p>
-          <p><strong>林梅</strong><span>3 mentions</span></p>
+        <div class="preview-list" aria-label="Sample entity list">
+          <p class="utility-label" data-preview-entity-count>Entities · ${samplePreview.entities.length}</p>
+          <p class="preview-active" data-preview-entity="Mara Venn"><strong>Mara Venn</strong><span>${sampleMentionCount('Mara Venn')} mentions</span></p>
+          <p data-preview-entity="Captain Venn"><strong>Captain Venn</strong><span>${sampleMentionCount('Captain Venn')} mentions</span></p>
+          <p data-preview-entity="林梅"><strong>林梅</strong><span>${sampleMentionCount('林梅')} mentions</span></p>
         </div>
         <article class="preview-evidence">
           <p class="utility-label">Evidence · 01 — The tide ledger</p>

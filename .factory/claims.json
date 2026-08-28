@@ -7,6 +7,13 @@
     "sandbox": "fresh browser context; enter from landing, edit an entity, then reload"
   },
   {
+    "id": "sample-preview",
+    "claim": "The landing sample preview reports the entity and mention counts produced by the bundled sample.",
+    "where": "landing sample output",
+    "test": "npm run test:claims -- --grep @claim:sample-preview",
+    "sandbox": "fresh browser context; read the rendered landing counts, open the demo, and compare them with its rendered entity rows"
+  },
+  {
     "id": "local-processing",
     "claim": "Manuscript text stays on the device, and the demo sends no third-party requests.",
     "where": "landing facts, privacy page, README",

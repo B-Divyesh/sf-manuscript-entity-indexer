@@ -44,8 +44,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.4' }}
-          releaseName: "Manuscript Entity Indexer ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.4' }}"
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.5' }}
+          releaseName: "Manuscript Entity Indexer ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.5' }}"
           releaseBody: 'Unsigned desktop builds. Check SHA256SUMS before installing.'
           releaseDraft: false
           prerelease: false
@@ -59,20 +59,20 @@ jobs:
       - name: Download release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.4' }}
+          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.5' }}
         run: |
           mkdir release-assets
           gh release download "$RELEASE_TAG" --dir release-assets
       - name: Create checksum and release manifest
         env:
-          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.4' }}
+          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.5' }}
         run: |
           cd release-assets
           sha256sum * > SHA256SUMS
           python ../scripts/release-manifest.py "$RELEASE_TAG" . latest.json
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.4' }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.5' }}
           draft: false
           prerelease: false
           files: |

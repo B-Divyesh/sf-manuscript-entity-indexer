@@ -19,6 +19,28 @@ test('@claim:demo-isolation demo loads complete sample data and does not persist
   await expect(page.getByText('Mara Venn Edited')).toHaveCount(0);
 });
 
+test('@claim:sample-preview landing sample counts match the rendered demo', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByText('Sample output', { exact: true })).toBeVisible();
+  const landingTotal = Number((await page.locator('[data-preview-entity-count]').innerText()).match(/\d+/)?.[0]);
+  const landingMentions = new Map<string, number>();
+  for (const name of ['Mara Venn', 'Captain Venn', '林梅']) {
+    const text = await page.locator(`[data-preview-entity="${name}"]`).innerText();
+    landingMentions.set(name, Number(text.match(/\d+/)?.[0]));
+  }
+
+  await page.getByRole('link', { name: 'Try it with sample data' }).first().click();
+  const demoTotal = await page.locator('[data-entity]').count();
+  expect(landingTotal).toBe(demoTotal);
+  for (const [name, count] of landingMentions) {
+    const text = await page.getByRole('option', { name: new RegExp(name) }).innerText();
+    expect(Number(text.match(/\d+/)?.[0])).toBe(count);
+  }
+
+  await page.getByRole('link', { name: /Manuscript Entity Indexer home/ }).click();
+  await expect(page.locator('[data-preview-entity-count]')).toHaveText(`Entities · ${demoTotal}`);
+});
+
 test('@claim:local-processing demo indexing makes no cross-origin requests', async ({ page }) => {
   const external: string[] = [];
   page.on('request', request => {
@@ -215,10 +237,10 @@ test('@claim:checkout-available the live purchase link starts hosted checkout', 
 
 test('@claim:platform-download selects current macOS, Windows and Linux installers', async ({ browser }) => {
   const assets = [
-    'Manuscript.Entity.Indexer_0.1.4_aarch64.dmg',
-    'Manuscript.Entity.Indexer_0.1.4_x64-setup.exe',
-    'Manuscript.Entity.Indexer_0.1.4_amd64.AppImage'
-  ].map(name => ({ name, browser_download_url: `https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.4/${name}` }));
+    'Manuscript.Entity.Indexer_0.1.5_aarch64.dmg',
+    'Manuscript.Entity.Indexer_0.1.5_x64-setup.exe',
+    'Manuscript.Entity.Indexer_0.1.5_amd64.AppImage'
+  ].map(name => ({ name, browser_download_url: `https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases/download/v0.1.5/${name}` }));
   for (const [platformValue, label, suffix] of [
     ['MacIntel', 'macOS', '.dmg'],
     ['Win32', 'Windows', '.exe'],
@@ -230,7 +252,7 @@ test('@claim:platform-download selects current macOS, Windows and Linux installe
     await page.route('https://api.github.com/repos/B-Divyesh/sf-manuscript-entity-indexer/releases?per_page=1', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify([{ tag_name: 'v0.1.4', assets }])
+      body: JSON.stringify([{ tag_name: 'v0.1.5', assets }])
     }));
     await page.goto('/');
     const download = page.getByRole('link', { name: `Download for ${label}` });
