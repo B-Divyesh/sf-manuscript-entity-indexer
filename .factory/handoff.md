@@ -26,7 +26,10 @@ to `main`; this pass closes every finding in `.factory/review-1.md` and
 - `npm run typecheck` passed.
 - `npm test` passed: 7 Vitest tests and 34 Playwright tests.
 - Every one of 20 `.factory/claims.json` entries has exactly one tagged test;
-  all run within `npm test`.
+  all run within `npm test`. From clean clone
+  `/tmp/mei-polish2-clean` at `6603af6410e7248029d4d3f7f6e941d653ba3ca3`,
+  `npm ci` and all 20 declared claim commands were also run separately and
+  passed.
 - `npm run build:site` passed and produced `dist/site`.
 - `cargo test --locked --manifest-path src-tauri/Cargo.toml` passed: 2 Rust
   tests.
