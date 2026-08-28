@@ -38,11 +38,15 @@ The final local production build is 26.95 KB gzip JavaScript and 5.17 KB gzip CS
 
 ## Release and deployment
 
-The intended release tag is `v0.1.2`, created from the final 404 repair commit after this handoff is committed. GitHub Actions must finish its macOS arm64/x86_64, Windows, and Linux AppImage/DEB jobs and publish `SHA256SUMS` plus `latest.json`; verify the tag resolves to this repair commit before accepting desktop downloads. The static deployment command is:
+Release `v0.1.2` was published by successful GitHub Actions run `33183410522` from commit `4eb4bc14d43b3d11f0b99110cb793fe178b69e45`. It contains macOS arm64/x64 DMG and app tarballs, Windows MSI/EXE, and Linux AppImage/DEB/RPM assets, plus `SHA256SUMS` and valid `latest.json` (version `0.1.2`, 9 assets). The published AMD64 DEB reports package version `0.1.2`; its downloaded SHA-256 is `1798df3e043939293a73b339aa9b0689126db91cb7c473a827120158bf72e48b`, matching `SHA256SUMS`. A fresh live browser context selects the v0.1.2 Linux AppImage link without console errors.
+
+The static site was deployed successfully to `https://manuscript-entity-indexer.sociobot.in` using:
 
 ```sh
 /opt/fleet/lib/deploy-static.sh manuscript-entity-indexer dist/site
 ```
+
+Live checks: root, demo, app, privacy and terms return 200; an unknown path returns HTTP 404; the live JS, CSS, service worker and manifest hashes match `dist/site`; and `verify-url.sh` reports no console errors. Mobile Lighthouse on the live landing page scored Performance 99 and Accessibility 100 (LCP 1132 ms, CLS 0).
 
 ## Needs operator action
 
