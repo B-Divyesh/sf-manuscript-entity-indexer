@@ -2,8 +2,9 @@
 
 ## Status
 
-Ready to deploy from the repair commit recorded below. This pass closes every
-finding in `.factory/review-1.md` and `.factory/review-2.md`.
+Deployed. Repair commit `6603af6410e7248029d4d3f7f6e941d653ba3ca3` is pushed
+to `main`; this pass closes every finding in `.factory/review-1.md` and
+`.factory/review-2.md`.
 
 ## What changed
 
@@ -37,12 +38,15 @@ finding in `.factory/review-1.md` and `.factory/review-2.md`.
 
 ## Deployment and live evidence
 
-The static deploy artifact is `dist/site` (`npm run build:site`). Push this
-repair to `main`; the factory static work order deploys that directory. After
-deployment, verify `https://manuscript-entity-indexer.sociobot.in/demo` cold,
-including the banner, reset action, chapter search and mobile download link.
-Append the deployed commit and live screenshot URL/path here before external
-handoff.
+- Deployed with `/opt/fleet/lib/deploy-static.sh manuscript-entity-indexer
+  dist/site`; Static Web Apps deployment `dbdb08af-c529-4bd7-b449-8f334411fe57`
+  succeeded and `https://manuscript-entity-indexer.sociobot.in` returned 200.
+- Cold root verification recorded 779 ms load, no console errors, title/lang,
+  exactly one h1, main landmark and no missing image alt. Evidence:
+  `.factory/evidence/polish-2-live/verify.json`.
+- Cold mobile demo verification found the banner and Reset demo control, no
+  `地図` false positive, no console errors and zero Axe violations. Screenshot:
+  `.factory/evidence/polish-2-live/demo-mobile.png`.
 
 ## Known gaps
 

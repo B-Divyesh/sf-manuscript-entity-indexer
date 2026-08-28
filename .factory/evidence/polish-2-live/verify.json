@@ -1,0 +1,14 @@
+{
+  "url": "https://manuscript-entity-indexer.sociobot.in",
+  "loadMs": 779,
+  "errors": [],
+  "a11y": {
+    "title": "Manuscript Entity Indexer — Review manuscript names",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 2152
+  }
+}

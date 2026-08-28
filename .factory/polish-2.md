@@ -30,4 +30,12 @@ reading review 1, review 2, polish 1 and all retained verification reports.
 - `cargo test --locked --manifest-path src-tauri/Cargo.toml`: 2 Rust tests passed.
 - `CI=true npm run tauri build -- --no-bundle`: built
   `src-tauri/target/release/manuscript-entity-indexer`.
-- Live deployment check and screenshot path are appended after the pushed static deployment is available.
+- Live cold check: `https://manuscript-entity-indexer.sociobot.in/` returned 200
+  with the repaired “Sample name index” and chapter-search copy; verifier
+  reported no console errors, one title/lang/main/h1 and no missing image alt.
+- Live demo check: `https://manuscript-entity-indexer.sociobot.in/demo` returned
+  the demo title, persistent banner and Reset demo control; `地図` was absent;
+  Axe reported 0 violations and the console was clean.
+- Screenshots: `.factory/evidence/polish-2-live/screenshot-desktop.png`,
+  `.factory/evidence/polish-2-live/screenshot-mobile.png`, and
+  `.factory/evidence/polish-2-live/demo-mobile.png`.
