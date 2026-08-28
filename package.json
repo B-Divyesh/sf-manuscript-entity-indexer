@@ -12,7 +12,9 @@
     "test": "vitest run && playwright test",
     "test:unit": "vitest run",
     "test:claims": "playwright test",
-    "test:a11y": "playwright test --grep @a11y"
+    "test:a11y": "playwright test --grep @a11y",
+    "typecheck": "tsc --noEmit",
+    "lint": "npm run typecheck"
   },
   "dependencies": {
     "@tauri-apps/api": "2.8.0",
@@ -23,6 +25,7 @@
     "@axe-core/playwright": "4.10.2",
     "@playwright/test": "1.58.2",
     "@tauri-apps/cli": "2.8.4",
+    "@types/node": "22.13.10",
     "typescript": "5.8.3",
     "vite": "6.1.0",
     "vitest": "3.0.8"

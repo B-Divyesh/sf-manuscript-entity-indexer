@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { zipSync, strToU8 } from 'fflate';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -94,12 +94,29 @@ test('@claim:supported-imports imports Markdown and DOCX text', async ({ page })
   const docx = Buffer.from(zipSync({ 'word/document.xml': strToU8(xml) }));
   const folder = await mkdtemp(join(tmpdir(), 'mei-import-'));
   try {
-    await writeFile(join(folder, 'chapter.md'), 'Mara Venn entered Glass Harbor.');
+    await writeFile(join(folder, 'chapter.md'), 'Mara Venn entered Glass Harbor. ユキは白港へ向かった。민서가 강변역에 도착했다。');
     await writeFile(join(folder, 'chapter.docx'), docx);
     await page.locator('#folder-input').setInputFiles(folder);
     await expect(page.getByText('2 files', { exact: false }).first()).toBeVisible();
     await expect(page.getByRole('option', { name: /Mara Venn/ })).toBeVisible();
     await expect(page.getByRole('option', { name: /Ilya Chen/ })).toBeVisible();
+    await expect(page.getByRole('option', { name: /ユキ/ })).toBeVisible();
+    await expect(page.getByRole('option', { name: /민서/ })).toBeVisible();
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
+});
+
+test('@claim:source-files-unchanged imports a copy and leaves the selected chapter unchanged', async ({ page }) => {
+  await page.goto('/app');
+  const folder = await mkdtemp(join(tmpdir(), 'mei-source-'));
+  const chapter = join(folder, 'chapter.md');
+  const source = 'Mara Venn entered Glass Harbor.\n';
+  try {
+    await writeFile(chapter, source);
+    await page.locator('#folder-input').setInputFiles(folder);
+    await expect(page.getByRole('option', { name: /Mara Venn/ })).toBeVisible();
+    expect(await readFile(chapter, 'utf8')).toBe(source);
   } finally {
     await rm(folder, { recursive: true, force: true });
   }
@@ -183,7 +200,7 @@ test('@a11y main routes have no serious accessibility violations', async ({ page
     await page.goto(path);
     await expect(page.locator('main')).toHaveCount(1);
     await expect(page.locator('h1')).toHaveCount(1);
-    const results = await new AxeBuilder({ page }).analyze();
+    const results = await new AxeBuilder({ page: page as never }).analyze();
     expect(results.violations.filter(item => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
   }
   expect(errors).toEqual([]);
@@ -197,4 +214,26 @@ test('@a11y mobile workbench fits 390px and exposes its views', async ({ page })
   await expect(page.getByRole('heading', { name: 'Evidence' })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   expect(overflow).toBe(false);
+  const undersizedControls = await page.locator('button:visible, a:visible').evaluateAll(elements => elements
+    .filter(element => {
+      const rect = element.getBoundingClientRect();
+      return rect.width < 44 || rect.height < 44;
+    })
+    .map(element => ({ text: (element.textContent ?? '').trim(), rect: element.getBoundingClientRect().toJSON() })));
+  expect(undersizedControls).toEqual([]);
+});
+
+test('@a11y keyboard shortcuts, entity arrows and the chapter dialog remain operable', async ({ page }) => {
+  await page.goto('/demo');
+  await page.keyboard.press('/');
+  await expect(page.getByLabel('Search mentions')).toBeFocused();
+  await page.locator('[data-entity]').first().focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('[data-entity]').nth(1)).toBeFocused();
+  await page.getByRole('option', { name: /Mara Venn/ }).click();
+  await page.getByRole('button', { name: /01 — The tide ledger/ }).first().focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toBeHidden();
 });

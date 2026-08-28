@@ -45,7 +45,8 @@ above 6:1. Statuses always include words or symbols, never color alone.
   paper, with offset shadows only on movable sheets.
 - Desktop workbench: 248 px entity rail, fluid evidence desk, 288 px ledger.
 - At 390 px, the workbench becomes a single column with a sticky view switcher.
-  Secondary counts compress; all controls remain at least 44 px.
+  Secondary counts compress; every visible button and link remains at least
+  44 by 44 px.
 
 ## Interaction grammar
 

@@ -9,7 +9,7 @@ No sentence exceeds 22 words. No sentence contains a banned word.
 | It opens a three-chapter index. | 5 | Pass |
 | Your drafts stay on this device. | 6 | Pass |
 | Works after the first visit without internet. | 7 | Pass |
-| $24 once for unlimited folders. | 5 | Pass |
+| $24 once removes the three-file limit. | 7 | Pass |
 | Repeated mentions become one author-reviewed ledger. | 6 | Pass |
 | At dusk, Mara Venn stepped off the ferry at Glass Harbor. | 11 | Pass |
 | Both names include “Venn”. | 4 | Pass |
@@ -23,8 +23,6 @@ No sentence exceeds 22 words. No sentence contains a banned word.
 | Search evidence by chapter. | 4 | Pass |
 | Add timeline notes and export the ledger. | 7 | Pass |
 | No manuscript upload. | 3 | Pass |
-| No text generation. | 3 | Pass |
-| No training on your writing. | 5 | Pass |
 | No source-file changes. | 3 | Pass |
 | The index uses small, visible rules. | 6 | Pass |
 | You decide which names belong together. | 6 | Pass |

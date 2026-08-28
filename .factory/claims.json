@@ -8,7 +8,7 @@
   },
   {
     "id": "local-processing",
-    "claim": "Manuscript text stays on the device.",
+    "claim": "Manuscript text stays on the device, and the demo sends no third-party requests.",
     "where": "landing facts, privacy page, README",
     "test": "npm run test:claims -- --grep @claim:local-processing",
     "sandbox": "demo flow with every request observed; assert same-origin only"
@@ -50,10 +50,17 @@
   },
   {
     "id": "supported-imports",
-    "claim": "Imports Markdown, text and DOCX chapters with Unicode names.",
+    "claim": "Imports Markdown, text and DOCX chapters with Latin, Han, Kana and Hangul names.",
     "where": "landing method, empty state, README",
     "test": "npm run test:claims -- --grep @claim:supported-imports",
     "sandbox": "fresh browser context; import generated Markdown and DOCX files and assert extracted entities"
+  },
+  {
+    "id": "source-files-unchanged",
+    "claim": "The app reads selected chapters without changing source files.",
+    "where": "landing method, privacy section, empty state, README",
+    "test": "npm run test:claims -- --grep @claim:source-files-unchanged",
+    "sandbox": "fresh browser context; import a generated Markdown chapter and assert its on-disk contents are unchanged"
   },
   {
     "id": "free-file-limit",

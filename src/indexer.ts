@@ -23,7 +23,7 @@ function excerptAt(text: string, position: number, length: number): string {
 
 function candidateKind(name: string): EntityKind {
   if (PLACE_WORDS.test(name)) return 'place';
-  if (/^[\p{Script=Han}]{2,4}$/u.test(name)) return /(?:港|駅|市|街|島|山|河|橋|文庫)$/u.test(name) ? 'place' : 'person';
+  if (/^[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]{2,8}$/u.test(name)) return /(?:港|駅|市|街|島|山|河|橋|文庫)$/u.test(name) ? 'place' : 'person';
   if (name.split(/\s+/).length > 1 || /^(?:Captain|Doctor|Dr|Professor)\s/.test(name)) return 'person';
   return 'other';
 }
@@ -45,6 +45,10 @@ export function extractCandidates(document: ManuscriptDocument): Array<{ name: s
   for (const match of document.text.matchAll(cjkNamed)) add(match[0], match.index ?? 0);
   const cjkPlaces = /[\p{Script=Han}]{1,3}(?:港|駅|市|街|島|山|河|橋|文庫)/gu;
   for (const match of document.text.matchAll(cjkPlaces)) add(match[0], match.index ?? 0);
+  const kanaNamed = /[\p{Script=Hiragana}\p{Script=Katakana}ー]{2,8}(?=(?:は|が|を|に|へ|の|と|さん|氏|先生|隊長))/gu;
+  for (const match of document.text.matchAll(kanaNamed)) add(match[0], match.index ?? 0);
+  const hangulNamed = /[\p{Script=Hangul}]{2,6}(?=(?:이|가|은|는|을|를|에|에게|의|와|과))/gu;
+  for (const match of document.text.matchAll(hangulNamed)) add(match[0], match.index ?? 0);
 
   return [...found.entries()].flatMap(([name, positions]) => positions.map(position => ({ name, position })));
 }

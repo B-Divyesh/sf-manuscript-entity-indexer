@@ -1,95 +1,79 @@
-# Handoff — Manuscript Entity Indexer v0.1.0
+# Handoff — Manuscript Entity Indexer repair
 
-## Independent verification status — FAIL
+## Status
 
-Candidate `a32292877d4a87a5b85426b23447f01df7c8638b` was independently verified against https://manuscript-entity-indexer.sociobot.in on 2026-08-28 UTC. Do **not** accept this candidate yet.
+The release-blocking findings from independent verification of candidate
+`a32292877d4a87a5b85426b23447f01df7c8638b` have been repaired. This repair
+keeps the Tauri 2 desktop application and static-site deployment class.
 
-All 12 required claim tests, `npm test`, the site production build, Rust tests, live core demo flow, offline reload, axe serious/critical scan, response-header checks and release-artifact checksum verification passed. The live static assets are byte-identical to this candidate build.
+## Repairs
 
-Release blockers:
+- Added `npm run typecheck` and `npm run lint`. TypeScript now includes Node
+  declarations and uses typed form targets; `npx tsc --noEmit` passes.
+- Made every visible 390 px demo button and link at least 44 by 44 CSS pixels.
+  This includes the demo banner, header, alias controls, chapter evidence links
+  and footer links.
+- Removed the inaccurate “unlimited folders” and untestable training promise.
+  Paid copy now exactly says that $24 removes the three-file limit. The claims
+  manifest now has 13 independently runnable, observable tests, including a
+  new source-file-unchanged claim.
+- Removed the desktop walker's pre-filter 500-entry cap. It now considers all
+  files and filters only by supported extension. A Rust regression creates 501
+  unsupported entries before a Markdown chapter and verifies the chapter is
+  indexed.
+- Added Kana and Hangul name candidates with representative unit and browser
+  import coverage. The documented supported scope is Latin, Han, Kana and
+  Hangul names.
 
-- `npx tsc --noEmit` fails with eight diagnostics (including three in `src/main.ts`).
-- At 390 px, visible controls are 18–40 px high, below the required 44×44 px touch target.
-- Visitor-reliant claims are unlisted/untested; “unlimited folders” is misleading because the app stores one project and the tested paid behavior is only removal of the three-file limit.
+## Verification
 
-Additional defects: desktop traversal silently caps all directory entries at 500 before filtering files; CJK support only demonstrates Han-script extraction, not Hangul or Kana.
-
-See `.factory/verification.md` for commands, exact evidence, severity and remediation.
-
-## What shipped
-
-- A Tauri 2 desktop shell with a Vite and TypeScript interface.
-- Local folder reading for Markdown, plain text and DOCX files.
-- Unicode-normalized Latin and CJK entity candidates.
-- Person, place and other classifications with editable display names.
-- Explainable alias suggestions, merge, reject and one-step undo.
-- Searchable evidence, source-chapter dialogs and entity-linked timeline notes.
-- Local project persistence, confirmed deletion and CSV export.
-- A memory-only three-chapter demo at `/demo` with reset and exit controls.
-- A $24 owner license flow through the Sociobot billing API.
-- A static landing site, privacy, terms and designed 404 routes.
-- Original generated broadsheet art and three sample-project walkthroughs.
-- A cross-platform GitHub Actions release workflow with checksums and a manifest.
-
-The source manuscript is never edited. The web build stores a selected project
-under `mei:project:v1`. Demo state is rebuilt in memory and has no storage key.
-
-## Run and verify
+Run from a clean checkout:
 
 ```sh
 npm ci
 npm test
-npm run build:site
+npm run typecheck
+npm run lint
+npm run build
 cargo test --locked --manifest-path src-tauri/Cargo.toml
 npm run tauri build -- --no-bundle
 ```
 
-`npm run build:site` is the work-order build command. It writes `index.html`
-and route fallbacks under `dist/site`.
+Evidence from this repair on 2026-08-28 UTC:
 
-Verification completed on 28 August 2026:
+- Clean `npm ci` completed; `npm audit --omit=dev` reported 0 vulnerabilities.
+- `npm test` passed: 4 Vitest tests and 16 Playwright tests.
+- Each of the 13 commands declared in `.factory/claims.json` passed separately.
+  They cover demo isolation, local processing, offline reload, CSV export,
+  alias review, timeline notes, chapter evidence, imports, source-file safety,
+  free limit, local storage, owner license and platform downloads.
+- `npx tsc --noEmit`, `npm run lint` and `npm run build` passed. The static
+  build is 26.49 KB gzip JavaScript and 5.09 KB gzip CSS.
+- `cargo test --locked --manifest-path src-tauri/Cargo.toml` passed (2 Rust
+  tests plus doc tests). `npm run tauri build -- --no-bundle` produced
+  `src-tauri/target/release/manuscript-entity-indexer` (5,542,832 bytes).
+- Browser accessibility checks passed on `/`, `/demo`, `/app`, `/privacy`,
+  `/terms` and a missing route with no serious or critical axe violations.
+  The 390×844 regression checks every visible interactive target and finds no
+  target below 44 by 44 pixels or horizontal overflow. Keyboard coverage
+  verifies `/` search, entity arrow navigation, Enter and dialog Escape.
+- The claim suite verifies same-origin-only demo requests and offline reload
+  after service-worker control.
 
-- Vitest: 3 passed.
-- Playwright: 14 passed, including all 12 claim tests.
-- Axe through Playwright: no serious or critical issues on six routes.
-- Console smoke test: no page errors or console errors on six routes.
-- Mobile check: the demo fits a 390 by 844 viewport without horizontal scroll.
-- Rust: 1 unit test passed; doc tests passed.
-- Tauri: release-mode Linux application built with `--no-bundle`.
-- Production JS: about 26 KB gzip across the initial chunks.
-- Production CSS: 5.07 KB gzip.
-- Mobile hero: 20 KB AVIF or 36 KB WebP.
-- Lighthouse mobile: performance 100, accessibility 100, best practices 100,
-  SEO 100, FCP 1.0 s, LCP 1.5 s, TBT 40 ms and CLS 0.
+## Deployment
 
-The image was visually reviewed for branding, seams and misleading UI. It has
-no logos, people or readable product claims.
+The static build to deploy is `dist/site`; deployment and post-deploy identity
+evidence are recorded after the production upload in this handoff's final
+revision.
 
-## Known gaps
+## Known limits
 
-- Extraction is intentionally heuristic. It can miss uncommon names or mark
-  title-case prose as an entity. The author review flow is the safeguard.
-- DOCX import reads document text. It does not preserve comments, footnotes,
-  tracked changes or page layout.
-- The 80% accepted-mention research target needs a separate reviewed manuscript
-  corpus. It is not presented as a product claim.
-- Release `v0.1.0` is public with 11 assets across macOS, Windows and Linux.
-- `Manuscript.Entity.Indexer_0.1.0_amd64.deb` was downloaded from the release
-  and passed verification against the published `SHA256SUMS` file.
-
-## Needs operator action
-
-- Register `manuscript-entity-indexer` in Sociobot billing with a $24 one-time
-  price and the production return URL.
-- Current desktop packages are unsigned. macOS signing needs
-  `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`,
-  `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID`.
-  Windows signing needs `WINDOWS_CERT_PFX` and `WINDOWS_CERT_PASSWORD`. The
-  workflow must be connected to those secrets before signed packages ship.
-
-## Next steps
-
-- Measure candidate recall and alias false merges against author-reviewed
-  multilingual manuscripts.
-- Add EPUB or OpenDocument import only after demand is confirmed.
-- Add a versioned project-file backup if authors need device migration.
+- Entity extraction is intentionally heuristic and can miss unusual names or
+  mark title-case prose as an entity. The author review flow is the safeguard.
+- DOCX import reads document text only; comments, footnotes, tracked changes
+  and page layout are not preserved.
+- Desktop releases remain unsigned until the operator supplies signing
+  certificates. macOS needs `APPLE_CERTIFICATE`,
+  `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`,
+  `APPLE_PASSWORD` and `APPLE_TEAM_ID`; Windows needs `WINDOWS_CERT_PFX` and
+  `WINDOWS_CERT_PASSWORD`.

@@ -3,8 +3,8 @@
 Index characters, places and aliases without uploading your manuscript.
 
 This local continuity ledger is for novelists working across languages. It
-reads Markdown, text and DOCX chapters, then marks recurring Latin and CJK
-names with small, visible rules. The author reviews every alias merge.
+reads Markdown, text and DOCX chapters, then marks recurring Latin, Han, Kana
+and Hangul names with small, visible rules. The author reviews every alias merge.
 
 Try the isolated sample at
 https://manuscript-entity-indexer.sociobot.in/demo. Demo edits stay in memory

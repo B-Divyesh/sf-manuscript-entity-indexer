@@ -10,6 +10,19 @@ describe('lightweight manuscript indexer', () => {
     expect(project.entities.some(entity => entity.name === '白港' && entity.kind === 'place')).toBe(true);
   });
 
+  it('finds Kana and Hangul names when they are followed by their local particles', () => {
+    const document = {
+      id: 'cjk', title: 'CJK', path: 'cjk.md',
+      text: 'ユキは白港へ向かった。민서가 강변역에 도착했다。'
+    };
+    const candidates = extractCandidates(document).map(candidate => candidate.name);
+    expect(candidates).toContain('ユキ');
+    expect(candidates).toContain('민서');
+    const project = indexDocuments('CJK', [document]);
+    expect(project.entities.find(entity => entity.name === 'ユキ')?.kind).toBe('person');
+    expect(project.entities.find(entity => entity.name === '민서')?.kind).toBe('person');
+  });
+
   it('normalizes Unicode without changing source text', () => {
     const document = { id: 'u', title: 'Unicode', path: 'u.md', text: 'Ａｎａ Vale met Ana Vale at River Station.' };
     const source = document.text;

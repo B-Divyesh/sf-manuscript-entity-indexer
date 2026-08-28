@@ -47,7 +47,7 @@ function facts(): string {
   return `<ul class="plain-facts" aria-label="Product facts">
     <li><span aria-hidden="true">01</span>Your drafts stay on this device.</li>
     <li><span aria-hidden="true">02</span>Works after the first visit without internet.</li>
-    <li><span aria-hidden="true">03</span>$24 once for unlimited folders.</li>
+    <li><span aria-hidden="true">03</span>$24 once removes the three-file limit.</li>
   </ul>`;
 }
 
@@ -119,12 +119,12 @@ function landing(): string {
 
     <section class="privacy-section" aria-labelledby="boundaries-heading">
       <div><p class="eyebrow">The quiet margin</p><h2 id="boundaries-heading">What never happens to your draft</h2></div>
-      <ul><li>No manuscript upload.</li><li>No text generation.</li><li>No training on your writing.</li><li>No source-file changes.</li></ul>
+      <ul><li>No manuscript upload.</li><li>No source-file changes.</li></ul>
       <p>The index uses small, visible rules. You decide which names belong together.</p>
     </section>
 
     <section class="price-section" aria-labelledby="price-heading">
-      <div><p class="eyebrow">Owner edition</p><h2 id="price-heading">Keep unlimited manuscript folders</h2><p>Free indexes three files at a time. The owner edition removes that limit.</p></div>
+      <div><p class="eyebrow">Owner edition</p><h2 id="price-heading">Index folders with more than three files</h2><p>Free indexes three files at a time. The owner edition removes that limit.</p></div>
       <div class="price-ticket"><p><span class="price">$24</span> one time</p><a class="button button-primary" href="${checkoutUrl}">Buy the owner edition</a><p>Sociobot is the merchant of record. Refunds revoke the license.</p></div>
       <div class="download-block" id="download-block"><p class="utility-label">Desktop app · unsigned preview</p><a class="button button-ink" href="https://github.com/B-Divyesh/sf-manuscript-entity-indexer/releases">Downloads are being published</a><p>macOS, Windows and Linux builds appear on the release page.</p></div>
     </section>
@@ -378,21 +378,21 @@ function bindPage(): void {
     event.preventDefault();
     if (!project) return;
     const selected = project.entities.find(entity => entity.id === selectedEntityId);
-    const data = new FormData(event.currentTarget);
+    const data = new FormData(event.currentTarget as HTMLFormElement);
     if (selected) { selected.name = String(data.get('name')).trim(); selected.kind = String(data.get('kind')) as EntityKind; }
     notice = 'Saved the entity.'; saveCurrent(); render();
   });
   document.querySelector<HTMLFormElement>('#timeline-form')?.addEventListener('submit', event => {
     event.preventDefault();
     if (!project) return;
-    const note = String(new FormData(event.currentTarget).get('note')).trim();
+    const note = String(new FormData(event.currentTarget as HTMLFormElement).get('note')).trim();
     if (!note) return;
     project.timeline.push({ id: `manual-${Date.now()}`, documentId: '', documentTitle: 'Author ledger', entityIds: [selectedEntityId], marker: 'Your note', note, manual: true });
     notice = 'Added the continuity note.'; saveCurrent(); render();
   });
   document.querySelector<HTMLFormElement>('#license-form')?.addEventListener('submit', async event => {
     event.preventDefault();
-    const token = String(new FormData(event.currentTarget).get('license')).trim();
+    const token = String(new FormData(event.currentTarget as HTMLFormElement).get('license')).trim();
     if (!token) { error = 'No license was entered. Paste the full token and try again.'; render(); return; }
     storeLicense(token); license = { active: false, checking: true, message: 'Checking license' }; render();
     license = await verifyLicense(); render();

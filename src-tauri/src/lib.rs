@@ -37,13 +37,16 @@ fn index_folder(path: String) -> Result<Vec<ManuscriptDocument>, String> {
     if !root.is_dir() {
         return Err("The selected path is not a folder.".to_string());
     }
+    index_documents(root)
+}
+
+fn index_documents(root: &Path) -> Result<Vec<ManuscriptDocument>, String> {
     let mut documents = Vec::new();
     for entry in WalkDir::new(root)
         .follow_links(false)
         .into_iter()
         .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_file())
-        .take(500)
     {
         let file_path = entry.path();
         let extension = file_path
@@ -97,5 +100,30 @@ mod tests {
     fn rejects_a_file_as_folder() {
         let result = index_folder("Cargo.toml".to_string());
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn indexes_supported_files_after_more_than_500_unsupported_entries() {
+        let root = std::env::temp_dir().join(format!(
+            "mei-walkdir-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock before epoch")
+                .as_nanos()
+        ));
+        fs::create_dir_all(&root).expect("create temporary manuscript folder");
+        for number in 0..501 {
+            fs::write(root.join(format!("note-{number}.tmp")), "not a chapter")
+                .expect("write unsupported file");
+        }
+        fs::write(root.join("chapter.md"), "Mara Venn entered Glass Harbor.")
+            .expect("write supported chapter");
+
+        let documents = index_documents(&root).expect("index supported chapter");
+        assert_eq!(documents.len(), 1);
+        assert_eq!(documents[0].path, "chapter.md");
+
+        fs::remove_dir_all(root).expect("remove temporary manuscript folder");
     }
 }
