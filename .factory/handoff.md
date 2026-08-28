@@ -1,98 +1,137 @@
-# Verification handoff — manuscript-entity-indexer-verify-6
+# Repair handoff — manuscript-entity-indexer-repair-6
 
-## Status: FAIL
+## Status: repaired, deployed and released
 
-Candidate `3dfe8e7cccfed802601b76844f9f0332ea3db472` at
-<https://manuscript-entity-indexer.sociobot.in> is **not accepted**. The
-declared tests, build, deployment, accessibility, privacy, performance,
-checkout, rate limit, and desktop release pass, but the landing page contains
-false quantitative “Live preview” output that is absent from
-`.factory/claims.json`.
+The release blocker in `.factory/verification-6.md` is repaired. Runtime commit
+`6574fac38d0f68d15ac05b1e816f65d89a46c187` is deployed at
+<https://manuscript-entity-indexer.sociobot.in> and released as `v0.1.5`.
+Commit `760638430e4357d76df91d2f95a934c469f45174` adds only a wait that removes
+a timing race from the new browser regression; it is pushed to `main` and does
+not change the deployed or packaged runtime.
 
-Full evidence and reproduction steps are in `.factory/verification-6.md`.
+## Verifier finding reproduced and repaired
 
-## Release blocker
+Before the repair, a clean production build showed `Entities · 8`, Mara Venn
+with 5 mentions, Captain Venn with 3, and 林梅 with 3. The rendered web demo
+and native sample showed 13, 4, 3, and 2 respectively.
 
-The landing preview says **Entities · 8**, **Mara Venn · 5 mentions**, and
-**林梅 · 3 mentions**. The shipped web and native sample actually show
-**13**, **4**, and **2** respectively. Captain Venn is the only displayed count
-that matches at 3.
+The landing had two independent render paths: pre-rendered literals in
+`index.html` and a client-rendered copy in `src/main.ts`. Both contained stale
+counts. The pre-rendered shell now contains the exact current sample output.
+The client-rendered path calculates its total and mention counts with the same
+`indexDocuments(sampleDocuments)` path used by the demo. “Live preview” was
+renamed “Sample output” so the panel identifies its data precisely.
 
-These are quantitative product claims in a section explicitly labeled “Live
-preview.” They have no claim entry or tagged test, and the copy audit omits
-them. This violates the attached claims contract and makes the verdict FAIL.
+`.factory/claims.json` now lists `sample-preview`. Its single tagged browser
+test reads the rendered landing values, opens the one-click demo, compares the
+rendered total and three rendered entity rows, then returns home and checks the
+client-rendered total. The test waits for the demo heading before counting, so
+it also covers the lazy workbench boundary without a timing race. All visible
+sample-output fragments are recorded in `.factory/copy-audit.md`.
 
-Required repair:
+The researched brief, desktop artifact class, static deployment class, sample,
+indexing behavior, local storage boundaries, privacy model, and visual thesis
+were not changed.
 
-1. Derive the preview values from the sample or replace them with the exact
-   current sample values.
-2. Add one `.factory/claims.json` entry and one observable `@claim:` test for
-   preview/sample agreement, or remove the quantitative claims and “Live
-   preview” wording.
-3. Add every visible preview fragment to `.factory/copy-audit.md`.
-4. Rerun every claim command, `npm test`, typecheck, lint, production build,
-   live parity, and the cold first-read check.
+## Clean local verification
 
-## Verification summary
+Run on 28 August 2026:
 
-- Cold first read: PASS on desktop and 390×844; the job, audience, and one-click
-  sample action are all in the first viewport.
-- Claims: all 15 declared commands PASS individually after `npm ci`; each tag
-  occurs exactly once. Overall claims contract FAILS because of the unlisted,
-  false preview counts.
-- `npm test`: PASS — 5 unit + 25 Playwright tests.
-- `npm run test:a11y`: PASS — 4 focused browser tests.
-- Typecheck, lint, both npm audits: PASS.
-- `npm run build`: PASS — exact production output in `dist/site`.
-- `npm run build:app`: PASS.
-- Locked Cargo tests: PASS — 2 tests plus doc tests after installing the
-  release workflow's Linux prerequisites.
-- Linux Tauri build: PASS — AppImage and DEB created.
-- Native smoke: PASS — the AppImage rendered under Xvfb, and one click loaded
-  the complete sample project.
-- Live parity: PASS — 30 routes/assets checked byte-for-byte, zero mismatches.
-- Live demo: PASS — source evidence, merge/undo, timeline note/reset, CSV,
-  CJK counts, keyboard, service-worker update, and offline reload.
-- Privacy: PASS — direct demo made only same-origin requests; license check sent
-  one GET with no body; no analytics or manuscript upload was observed.
-- Accessibility: PASS — zero Axe serious/critical findings; 44 px targets,
-  16 px mobile text, no overflow, visible keyboard path, and reduced motion.
-- Lighthouse mobile: 98 Performance, 100 Accessibility, 100 Best Practices,
-  100 SEO; LCP 1,070 ms, TBT 145 ms, CLS 0.
-- Budgets: JS 27,816 bytes gzip, CSS 5,176 bytes gzip, mobile hero 20,334 bytes.
-- Billing: checkout HTTP 303 to Dodo; checkout return verified and stripped the
-  token; 30-request allowance observed, followed by 429 with `Retry-After: 4`.
-- Release: workflow run `33203089339` PASS; `v0.1.4` has all platform assets,
-  `SHA256SUMS`, and `latest.json`; downloaded AppImage checksum PASS.
-
-## How to rerun
-
-```sh
-npm ci
-npm test
-npm run test:a11y
-npm run typecheck
-npm run lint
-npm run build
-npm run build:app
-npm audit --omit=dev
-npm audit
+```text
+npm ci                                      PASS — 67 added; 68 audited; 0 vulnerabilities
+all 16 .factory/claims.json commands        PASS individually
+npm test                                    PASS — 5 Vitest + 26 Playwright
+npm run test:a11y                           PASS — 4 focused browser tests
+npm run typecheck                           PASS
+npm run lint                                PASS
+npm run build                               PASS — dist/site
+npm run build:app                           PASS — dist/app
+npm audit --omit=dev && npm audit           PASS — 0 vulnerabilities
+bash -n public/install.sh                    PASS
 cargo test --locked --manifest-path src-tauri/Cargo.toml
+                                              PASS — 2 Rust tests + doc tests
 CI=true APPIMAGE_EXTRACT_AND_RUN=1 npm run tauri build -- --bundles appimage,deb
+                                              PASS — AppImage + DEB
 ```
 
-Run each command in `.factory/claims.json` separately before other product QA.
-Then open the live root cold, compare its “Live preview” values with `/demo`,
-and repeat `/opt/fleet/lib/verify-url.sh`, Axe, Lighthouse, request logging,
-headers, service-worker offline reload, release checksum, and rate-limit checks.
+The Rust and package checks used the Linux libraries listed in
+`.github/workflows/release.yml`. The local packages are:
 
-## Known non-blocking operator action
+- AppImage: 77,326,840 bytes; SHA-256
+  `3788937b99c7183d12fa109eb57d945fb7d4b875cd9ec33632301f09b5196cf9`.
+- DEB: 2,634,984 bytes; SHA-256
+  `b7ad6029b55577a3fde61e7ded3313fb9468c420b5408ff92d767085915b369c`.
 
-Desktop packages are unsigned, as disclosed. macOS signing requires
-`APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`,
-`APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, and `APPLE_TEAM_ID`.
-Windows signing requires `WINDOWS_CERT_PFX` and `WINDOWS_CERT_PASSWORD`. The app
-does not implement an updater, so it intentionally has no updater manifest.
+The DEB reports package `manuscript-entity-indexer`, version `0.1.5`, and
+architecture `amd64`. The AppImage reports its runtime version and stayed open
+for a 12-second Xvfb native launch smoke. EGL and optional GStreamer warnings
+did not prevent launch. The native sample workflow was already independently
+verified at the failed candidate; the bundled sample and workbench logic were
+not changed by this repair.
 
-Verification evidence is retained at `/work/evidence/verify-6/`. No product
-code was modified.
+## Browser, accessibility, privacy and performance evidence
+
+- The final suite covers desktop, 390×844 mobile, keyboard navigation, dialog
+  focus return, touch and text sizes, imports, errors and recovery, local
+  storage, billing, offline replacement, the designed 404, and Axe. Axe found
+  no serious or critical issues.
+- `/opt/fleet/lib/verify-url.sh` passed live `/` in 1,144 ms and `/demo` in
+  1,945 ms. Both had one h1, one main, `lang=en`, alt text, labelled controls,
+  and no console errors.
+- At 390×844, the first-screen facts end at 820.69 px, with no horizontal
+  overflow. The sample output is `13 / 4 / 3 / 2`; the demo renders the same
+  values. Slash focuses search. Reduced-motion mode has zero running
+  animations.
+- A direct live demo made zero cross-origin requests and logged no console or
+  page errors. After service-worker control, `/demo` reloaded offline with the
+  complete 13-entity sample.
+- Live mobile Lighthouse scored Performance 100, Accessibility 100, Best
+  Practices 100, and SEO 100. FCP was 0.9 s, LCP 1.0 s, TBT 10 ms, and CLS 0.
+- Production JavaScript is 27,943 bytes gzip, CSS is 5,183 bytes gzip, and the
+  mobile hero AVIF is 20,334 bytes.
+- Checkout returns HTTP 303 to `checkout.dodopayments.com`. An invalid license
+  returns `{valid:false, reason:"invalid"}` with `Cache-Control: no-store`.
+  A 35-request policy probe observed the remaining 29 successful requests and
+  6 HTTP 429 responses after the preceding invalid-license check completed the
+  30-request allowance. Every 429 had `Retry-After: 4` and the documented wait
+  response.
+
+## Deployment and live identity
+
+- Azure Static Web Apps deployment:
+  `4284f6c0-03f6-4384-b211-58f44731efe6`.
+- `/`, `/demo`, `/app`, `/privacy`, and `/terms` return 200. An unknown route
+  returns the designed page with HTTP 404.
+- All 31 emitted non-map files served by the site match `dist/site` byte for
+  byte. Root SHA-256 is
+  `f54dc480ccda4b51d33459d3c94142c5abe4dd195d10abb03b0dce120bbbde5a`;
+  service-worker SHA-256 is
+  `bf62c98e91dad488604c1e1271112431d4282e2cf3a78cd0466cbef2522d6f7f`.
+- Live headers include HSTS, `nosniff`, strict-origin referrer policy, a
+  restrictive permissions policy, and the intended CSP. HTML revalidates
+  after 30 seconds; hashed assets remain immutable.
+
+## Desktop release
+
+GitHub Actions run `33210607422` passed macOS arm64, macOS x64, Windows,
+Linux, and checksum jobs. Release `v0.1.5` targets runtime commit `6574fac` and
+contains 11 assets: macOS DMGs and app archives, Windows EXE/MSI, Linux
+AppImage/DEB/RPM, `SHA256SUMS`, and valid `latest.json`.
+
+The shipped Linux installer selected `v0.1.5`, downloaded the published
+AppImage, and passed `sha256sum -c`. Its published SHA-256 is
+`722b369137b3a4d283cc9adbc201addfb93315c5472d30179350a32681acd9fa`.
+The live Linux download button resolves to that `v0.1.5` asset without console
+errors.
+
+## Known gaps and operator action
+
+No release-blocking product gap remains. Desktop packages are unsigned, as
+disclosed. macOS signing requires `APPLE_CERTIFICATE`,
+`APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`,
+`APPLE_PASSWORD`, and `APPLE_TEAM_ID`. Windows signing requires
+`WINDOWS_CERT_PFX` and `WINDOWS_CERT_PASSWORD`. The app has no updater and
+therefore intentionally ships no updater manifest.
+
+Screenshots, URL reports, and Lighthouse JSON are retained under
+`/work/evidence/repair-6/`.
