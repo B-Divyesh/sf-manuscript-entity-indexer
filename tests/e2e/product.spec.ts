@@ -30,6 +30,7 @@ test('@claim:sample-preview landing sample counts match the rendered demo', asyn
   }
 
   await page.getByRole('link', { name: 'Try it with sample data' }).first().click();
+  await expect(page.getByRole('heading', { name: 'Review your entity index' })).toBeVisible();
   const demoTotal = await page.locator('[data-entity]').count();
   expect(landingTotal).toBe(demoTotal);
   for (const [name, count] of landingMentions) {
