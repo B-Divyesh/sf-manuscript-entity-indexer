@@ -1,58 +1,43 @@
-# Polish 2 handoff — Manuscript Entity Indexer
+# Review 3 handoff — Manuscript Entity Indexer
 
 ## Status
 
-Deployed. Repair commit `6603af6410e7248029d4d3f7f6e941d653ba3ca3` is pushed
-to `main`; this pass closes every finding in `.factory/review-1.md` and
-`.factory/review-2.md`.
+Review complete. Verdict: **FAIL** with two blocking carried findings. Product
+code was not modified.
 
-## What changed
+## What was done
 
-- Added real chapter-title search and its demo-entry claim test.
-- Made downloads safe on phone and explicit by desktop architecture.
-- Removed Japanese noun false positives from the sample and added a persistent,
-  undoable **Ignore this name** control.
-- Strengthened privacy proof by importing a unique manuscript sentinel while
-  observing all network requests.
-- Removed the unprovable refund claim; the legal page now states the tested
-  revoked-license result.
-- Replaced visitor-facing “entity” jargon with “name”.
-- Tested alias rejection, increased mobile text/touch targets, and removed the
-  remaining invalid landmarks/ARIA roles.
+- Reviewed the live deployment cold at 390 × 844 with an iPhone user agent and
+  at 1440 × 900.
+- Audited every landing-page and README sentence, plus headings and actions.
+- Exercised the live sample, reset, real-data isolation and offline reload.
+- Ran every registered claim command separately from a clean clone.
+- Rechecked every finding from reviews 1 and 2 against live behavior and code.
+- Checked route titles, metadata, 404 status/design, history and focus, links,
+  request logs, accessibility, security headers and visual identity.
+- Recorded the full evidence and fixes in `.factory/review-3.md`.
 
 ## Verification
 
-- `npm ci` completed with 0 production dependency vulnerabilities.
-- `npm run typecheck` passed.
+Clean clone: `/tmp/mei-review3.WZZq6t/repo` at
+`cc96d1923da10b0f1ee3cce7238d5d98c1335a6e`.
+
+- 20/20 individual `.factory/claims.json` commands passed.
 - `npm test` passed: 7 Vitest tests and 34 Playwright tests.
-- Every one of 20 `.factory/claims.json` entries has exactly one tagged test;
-  all run within `npm test`. From clean clone
-  `/tmp/mei-polish2-clean` at `6603af6410e7248029d4d3f7f6e941d653ba3ca3`,
-  `npm ci` and all 20 declared claim commands were also run separately and
-  passed.
+- `npm run typecheck` passed.
 - `npm run build:site` passed and produced `dist/site`.
-- `cargo test --locked --manifest-path src-tauri/Cargo.toml` passed: 2 Rust
-  tests.
-- `CI=true npm run tauri build -- --no-bundle` passed and built
-  `src-tauri/target/release/manuscript-entity-indexer`.
-- Axe scans on `/`, `/demo`, `/app`, `/privacy`, `/terms` and an unknown route
-  report zero violations. Mobile tests assert 16 px informational copy, 44 px
-  visible targets, visible focus and no horizontal overflow.
+- Live Axe scans reported zero violations on all checked routes.
+- The live link crawl found no dead HTTP links.
 
-## Deployment and live evidence
+## Findings left
 
-- Deployed with `/opt/fleet/lib/deploy-static.sh manuscript-entity-indexer
-  dist/site`; Static Web Apps deployment `dbdb08af-c529-4bd7-b449-8f334411fe57`
-  succeeded and `https://manuscript-entity-indexer.sociobot.in` returned 200.
-- Cold root verification recorded 779 ms load, no console errors, title/lang,
-  exactly one h1, main landmark and no missing image alt. Evidence:
-  `.factory/evidence/polish-2-live/verify.json`.
-- Cold mobile demo verification found the banner and Reset demo control, no
-  `地図` false positive, no console errors and zero Axe violations. Screenshot:
-  `.factory/evidence/polish-2-live/demo-mobile.png`.
+- F-3-1 / F-1-7: at 390 × 844, the second and third first-screen facts end at
+  850 px and 895 px. The suite checks this geometry only on desktop.
+- F-3-2 / F-1-10: `/app` still displays “Unicode and CJK” despite the prior
+  repair records saying the jargon was removed.
 
-## Known gaps
+## Next steps
 
-None in the product scope. Desktop artifacts remain unsigned preview builds;
-the release page carries the downloadable assets and checksum manifest. Code
-signing requires operator-owned macOS and Windows certificates.
+Fit all three facts above the phone fold without reducing the repaired 16 px
+text size, add the mobile geometry assertion, replace the workbench jargon with
+named writing systems, and add a public-copy regression check.
