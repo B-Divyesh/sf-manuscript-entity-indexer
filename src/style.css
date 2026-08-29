@@ -234,8 +234,11 @@ dialog > p { margin: 0; padding: 14px 20px; border-top: 1px solid var(--ink); co
   .site-header nav a { font-size: 1rem; }
   .wordmark span:last-child { display: none; }
   .wordmark-mark { font-size: 1rem; }
-  .hero-grid { padding-top: 40px; }
-  .hero-copy h1 { font-size: clamp(3.25rem, 16vw, 5rem); }
+  /* Keep the required action and all three plain facts in the 390 × 844 first screen. */
+  .hero-grid { padding-top: 16px; }
+  .hero-copy h1 { max-width: 12ch; margin-bottom: 12px; font-size: clamp(2.75rem, 13vw, 3.5rem); }
+  .hero-actions { margin-top: 20px; margin-bottom: 16px; }
+  .plain-facts { margin-top: 20px; }
   .edition-line, .section-kicker, .eyebrow, .utility-label { font-size: 1rem; letter-spacing: .06em; }
   .suggestion, .suggestion span { font-size: 1rem; }
   .hero-art img { box-shadow: 7px 7px 0 rgba(21,21,21,.12); }

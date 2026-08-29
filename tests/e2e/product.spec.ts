@@ -507,12 +507,21 @@ test('@a11y mobile landing keeps informational text and controls at 16px or larg
   expect(controls).toEqual([]);
 });
 
-test('@regression all three first-screen facts fit in a 1440 by 900 desktop viewport', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
-  const bottoms = await page.locator('.plain-facts li').evaluateAll(items => items.map(item => item.getBoundingClientRect().bottom));
-  expect(bottoms).toHaveLength(3);
-  expect(Math.max(...bottoms)).toBeLessThanOrEqual(900);
+test('@regression all three first-screen facts fit in desktop and iPhone viewports', async ({ page }) => {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    const bottoms = await page.locator('.plain-facts li').evaluateAll(items => items.map(item => item.getBoundingClientRect().bottom));
+    expect(bottoms).toHaveLength(3);
+    expect(Math.max(...bottoms)).toBeLessThanOrEqual(viewport.height);
+  }
+});
+
+test('@regression workbench public copy names supported writing systems without implementation jargon', async ({ page }) => {
+  await page.goto('/app');
+  await expect(page.getByText('Latin, Chinese, Japanese and Korean names', { exact: true })).toBeVisible();
+  const publicCopy = await page.locator('main').innerText();
+  expect(publicCopy).not.toMatch(/\b(?:unicode|cjk|candidates?)\b/i);
 });
 
 test('@a11y keyboard shortcuts, entity arrows and the chapter dialog remain operable', async ({ page }) => {

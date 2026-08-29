@@ -151,7 +151,7 @@ function emptyWorkbench(isDemo: boolean): string {
       <p class="small-note">Free edition: up to three files. Owner edition: unlimited files.</p>
       <input id="folder-input" class="visually-hidden-input" type="file" accept=".md,.markdown,.txt,.docx" multiple webkitdirectory aria-label="Choose manuscript files">
     </section>
-    <section class="format-strip" aria-label="Supported files"><span>Markdown</span><span>Plain text</span><span>DOCX</span><span>Unicode and CJK</span></section>
+    <section class="format-strip" aria-label="Supported files and writing systems"><span>Markdown</span><span>Plain text</span><span>DOCX</span><span>Latin, Chinese, Japanese and Korean names</span></section>
     ${licensePanel()}
   </main>${footer()}`;
 }
