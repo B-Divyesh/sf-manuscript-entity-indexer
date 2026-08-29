@@ -1,8 +1,8 @@
-# Copy audit — polish 2
+# Copy audit — polish 3
 
-Reviewed 2026-08-28. Visitor-facing landing, legal and README copy was read
-against the plain-words rules. No sentence is over 22 words and no banned
-marketing term remains.
+Reviewed 2026-08-29. Visitor-facing landing, legal, README and first-run
+workbench copy was read against the plain-words rules. No sentence is over 22
+words and no banned marketing term remains.
 
 | Copy | Words | Result |
 | --- | ---: | --- |
@@ -16,6 +16,7 @@ marketing term remains.
 | The app only suggests matches. You decide which names belong together. | 12 | Plain matching boundary: pass |
 | The purchase link starts at Sociobot, then opens Dodo’s hosted checkout. | 11 | Registered `billing-privacy` and `checkout-available` claims |
 | This app never receives card details. | 6 | Registered `billing-privacy` claim |
+| Latin, Chinese, Japanese and Korean names | 6 | First-run supported-writing-systems label: pass |
 
 ## Terminology
 
@@ -28,4 +29,5 @@ marketing term remains.
 | isolated sample | demo |
 
 `Entity` remains an internal TypeScript/data-model term only. The product UI,
-landing, README, claims and legal copy use “name”.
+landing, README, claims and legal copy use “name”. The first-run label names
+writing systems instead of implementation terms such as “Unicode” or “CJK”.

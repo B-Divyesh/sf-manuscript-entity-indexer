@@ -1,0 +1,25 @@
+{
+  "url": "https://manuscript-entity-indexer.sociobot.in",
+  "deployment_id": "33867063-32f4-431f-a50b-cd61ca4ea316",
+  "checked_at": "2026-08-29",
+  "routes": {
+    "/": { "status": 200, "title": "Manuscript Entity Indexer — Review manuscript names", "h1": 1, "main": 1, "axe_violations": 0, "console_errors": 0 },
+    "/demo": { "status": 200, "title": "Demo — Manuscript Entity Indexer", "h1": 1, "main": 1, "axe_violations": 0, "console_errors": 0 },
+    "/app": { "status": 200, "title": "Index — Manuscript Entity Indexer", "h1": 1, "main": 1, "axe_violations": 0, "console_errors": 0 },
+    "/privacy": { "status": 200, "title": "Privacy — Manuscript Entity Indexer", "h1": 1, "main": 1, "axe_violations": 0, "console_errors": 0 },
+    "/terms": { "status": 200, "title": "Terms — Manuscript Entity Indexer", "h1": 1, "main": 1, "axe_violations": 0, "console_errors": 0 },
+    "/missing-page": { "status": 404, "title": "Page not found — Manuscript Entity Indexer", "h1": 1, "main": 1, "axe_violations": 0, "console_errors": 0 }
+  },
+  "mobile_390x844": {
+    "fact_row_bottoms": [653.59, 698.59, 743.59],
+    "horizontal_overflow": false,
+    "writing_system_label": "Latin, Chinese, Japanese and Korean names",
+    "implementation_jargon_present": false
+  },
+  "direct_demo": {
+    "url": "https://manuscript-entity-indexer.sociobot.in/?demo=1",
+    "title": "Demo — Manuscript Entity Indexer",
+    "banner_present": true,
+    "reset_demo_present": true
+  }
+}
